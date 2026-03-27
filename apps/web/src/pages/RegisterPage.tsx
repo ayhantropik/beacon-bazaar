@@ -43,6 +43,8 @@ export default function RegisterPage() {
         Kayıt Ol
       </Typography>
 
+      <SocialLoginButtons mode="register" position="top" />
+
       {error && (
         <Typography color="error" textAlign="center" mb={2}>
           {error}
@@ -110,8 +112,6 @@ export default function RegisterPage() {
       >
         Kayıt Ol
       </Button>
-
-      <SocialLoginButtons mode="register" />
 
       <Typography textAlign="center" mt={2}>
         Zaten hesabınız var mı?{' '}

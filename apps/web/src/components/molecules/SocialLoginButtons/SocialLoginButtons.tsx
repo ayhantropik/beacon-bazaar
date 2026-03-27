@@ -26,9 +26,10 @@ const FACEBOOK_SVG = (
 
 interface SocialLoginButtonsProps {
   mode: 'login' | 'register';
+  position?: 'top' | 'bottom';
 }
 
-export default function SocialLoginButtons({ mode }: SocialLoginButtonsProps) {
+export default function SocialLoginButtons({ mode, position = 'bottom' }: SocialLoginButtonsProps) {
   const label = mode === 'login' ? 'ile giriş yap' : 'ile kayıt ol';
 
   const handleSocialLogin = (provider: string) => {
@@ -36,66 +37,125 @@ export default function SocialLoginButtons({ mode }: SocialLoginButtonsProps) {
     console.log(`${provider} ${label}`);
   };
 
+  const dividerText = position === 'top' ? 'veya e-posta ile' : 'veya';
+
   return (
     <Box>
+      {position === 'top' && (
+        <Box display="flex" flexDirection="column" gap={1.5} mb={1}>
+          <MuiButton
+            variant="outlined"
+            fullWidth
+            startIcon={GOOGLE_SVG}
+            onClick={() => handleSocialLogin('google')}
+            sx={{
+              borderColor: '#dadce0',
+              color: '#3c4043',
+              textTransform: 'none',
+              fontWeight: 500,
+              py: 1.2,
+              '&:hover': { borderColor: '#d2e3fc', backgroundColor: '#f8f9fa' },
+            }}
+          >
+            Google {label}
+          </MuiButton>
+
+          <MuiButton
+            variant="outlined"
+            fullWidth
+            startIcon={APPLE_SVG}
+            onClick={() => handleSocialLogin('apple')}
+            sx={{
+              borderColor: '#000',
+              color: '#000',
+              textTransform: 'none',
+              fontWeight: 500,
+              py: 1.2,
+              '&:hover': { backgroundColor: '#f5f5f5', borderColor: '#000' },
+            }}
+          >
+            Apple {label}
+          </MuiButton>
+
+          <MuiButton
+            variant="outlined"
+            fullWidth
+            startIcon={FACEBOOK_SVG}
+            onClick={() => handleSocialLogin('facebook')}
+            sx={{
+              borderColor: '#1877F2',
+              color: '#1877F2',
+              textTransform: 'none',
+              fontWeight: 500,
+              py: 1.2,
+              '&:hover': { backgroundColor: '#f0f2f5', borderColor: '#1877F2' },
+            }}
+          >
+            Facebook {label}
+          </MuiButton>
+        </Box>
+      )}
+
       <Divider sx={{ my: 2.5 }}>
         <Typography variant="body2" color="text.secondary">
-          veya
+          {dividerText}
         </Typography>
       </Divider>
 
-      <Box display="flex" flexDirection="column" gap={1.5}>
-        <MuiButton
-          variant="outlined"
-          fullWidth
-          startIcon={GOOGLE_SVG}
-          onClick={() => handleSocialLogin('google')}
-          sx={{
-            borderColor: '#dadce0',
-            color: '#3c4043',
-            textTransform: 'none',
-            fontWeight: 500,
-            py: 1.2,
-            '&:hover': { borderColor: '#d2e3fc', backgroundColor: '#f8f9fa' },
-          }}
-        >
-          Google {label}
-        </MuiButton>
+      {position === 'bottom' && (
+        <Box display="flex" flexDirection="column" gap={1.5}>
+          <MuiButton
+            variant="outlined"
+            fullWidth
+            startIcon={GOOGLE_SVG}
+            onClick={() => handleSocialLogin('google')}
+            sx={{
+              borderColor: '#dadce0',
+              color: '#3c4043',
+              textTransform: 'none',
+              fontWeight: 500,
+              py: 1.2,
+              '&:hover': { borderColor: '#d2e3fc', backgroundColor: '#f8f9fa' },
+            }}
+          >
+            Google {label}
+          </MuiButton>
 
-        <MuiButton
-          variant="outlined"
-          fullWidth
-          startIcon={APPLE_SVG}
-          onClick={() => handleSocialLogin('apple')}
-          sx={{
-            borderColor: '#000',
-            color: '#000',
-            textTransform: 'none',
-            fontWeight: 500,
-            py: 1.2,
-            '&:hover': { backgroundColor: '#f5f5f5', borderColor: '#000' },
-          }}
-        >
-          Apple {label}
-        </MuiButton>
+          <MuiButton
+            variant="outlined"
+            fullWidth
+            startIcon={APPLE_SVG}
+            onClick={() => handleSocialLogin('apple')}
+            sx={{
+              borderColor: '#000',
+              color: '#000',
+              textTransform: 'none',
+              fontWeight: 500,
+              py: 1.2,
+              '&:hover': { backgroundColor: '#f5f5f5', borderColor: '#000' },
+            }}
+          >
+            Apple {label}
+          </MuiButton>
 
-        <MuiButton
-          variant="outlined"
-          fullWidth
-          startIcon={FACEBOOK_SVG}
-          onClick={() => handleSocialLogin('facebook')}
-          sx={{
-            borderColor: '#1877F2',
-            color: '#1877F2',
-            textTransform: 'none',
-            fontWeight: 500,
-            py: 1.2,
-            '&:hover': { backgroundColor: '#f0f2f5', borderColor: '#1877F2' },
-          }}
-        >
-          Facebook {label}
-        </MuiButton>
-      </Box>
+          <MuiButton
+            variant="outlined"
+            fullWidth
+            startIcon={FACEBOOK_SVG}
+            onClick={() => handleSocialLogin('facebook')}
+            sx={{
+              borderColor: '#1877F2',
+              color: '#1877F2',
+              textTransform: 'none',
+              fontWeight: 500,
+              py: 1.2,
+              '&:hover': { backgroundColor: '#f0f2f5', borderColor: '#1877F2' },
+            }}
+          >
+            Facebook {label}
+          </MuiButton>
+        </Box>
+      )}
     </Box>
   );
 }
