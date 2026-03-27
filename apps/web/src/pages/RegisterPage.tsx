@@ -8,6 +8,7 @@ import Button from '@components/atoms/Button';
 import Input from '@components/atoms/Input';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { register } from '@store/slices/authSlice';
+import SocialLoginButtons from '@components/molecules/SocialLoginButtons';
 
 const validationSchema = yup.object({
   name: yup.string().required('Ad gerekli'),
@@ -110,7 +111,9 @@ export default function RegisterPage() {
         Kayıt Ol
       </Button>
 
-      <Typography textAlign="center">
+      <SocialLoginButtons mode="register" />
+
+      <Typography textAlign="center" mt={2}>
         Zaten hesabınız var mı?{' '}
         <Link href="/login" underline="hover">
           Giriş Yap

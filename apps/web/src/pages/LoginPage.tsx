@@ -8,6 +8,7 @@ import Button from '@components/atoms/Button';
 import Input from '@components/atoms/Input';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { login } from '@store/slices/authSlice';
+import SocialLoginButtons from '@components/molecules/SocialLoginButtons';
 
 const validationSchema = yup.object({
   email: yup.string().email('Geçerli bir e-posta girin').required('E-posta gerekli'),
@@ -74,7 +75,9 @@ export default function LoginPage() {
         Giriş Yap
       </Button>
 
-      <Typography textAlign="center">
+      <SocialLoginButtons mode="login" />
+
+      <Typography textAlign="center" mt={2}>
         Hesabınız yok mu?{' '}
         <Link href="/register" underline="hover">
           Kayıt Ol
