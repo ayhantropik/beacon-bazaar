@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Stores
 CREATE TABLE IF NOT EXISTS stores (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "ownerId" VARCHAR,
+  "ownerId" UUID,
   name VARCHAR NOT NULL,
   slug VARCHAR NOT NULL UNIQUE,
   description TEXT,
@@ -86,7 +86,7 @@ CREATE INDEX IF NOT EXISTS idx_stores_location ON stores USING GIST (location);
 -- Products
 CREATE TABLE IF NOT EXISTS products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "storeId" VARCHAR,
+  "storeId" UUID,
   name VARCHAR NOT NULL,
   slug VARCHAR NOT NULL UNIQUE,
   description TEXT,
@@ -118,7 +118,7 @@ CREATE INDEX IF NOT EXISTS idx_products_name ON products (name);
 -- Orders
 CREATE TABLE IF NOT EXISTS orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "userId" VARCHAR,
+  "userId" UUID,
   items JSONB NOT NULL,
   "shippingAddress" JSONB,
   "billingAddress" JSONB,
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS beacons (
   uuid VARCHAR NOT NULL,
   major INTEGER NOT NULL,
   minor INTEGER NOT NULL,
-  "storeId" VARCHAR,
+  "storeId" UUID,
   name VARCHAR NOT NULL,
   latitude FLOAT,
   longitude FLOAT,
@@ -165,10 +165,10 @@ CREATE TABLE IF NOT EXISTS beacons (
 -- Appointments
 CREATE TABLE IF NOT EXISTS appointments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "userId" VARCHAR,
-  "storeId" VARCHAR,
-  "serviceId" VARCHAR,
-  "productId" VARCHAR,
+  "userId" UUID,
+  "storeId" UUID,
+  "serviceId" UUID,
+  "productId" UUID,
   date DATE NOT NULL,
   "startTime" VARCHAR NOT NULL,
   "endTime" VARCHAR NOT NULL,
@@ -234,14 +234,38 @@ ALTER TABLE beacons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 
 -- Public read policies (backend service role ile bypass edilir)
-CREATE POLICY IF NOT EXISTS "Public read stores" ON stores FOR SELECT USING (true);
-CREATE POLICY IF NOT EXISTS "Public read products" ON products FOR SELECT USING (true);
-CREATE POLICY IF NOT EXISTS "Service role full access users" ON users USING (true) WITH CHECK (true);
-CREATE POLICY IF NOT EXISTS "Service role full access stores" ON stores USING (true) WITH CHECK (true);
-CREATE POLICY IF NOT EXISTS "Service role full access products" ON products USING (true) WITH CHECK (true);
-CREATE POLICY IF NOT EXISTS "Service role full access orders" ON orders USING (true) WITH CHECK (true);
-CREATE POLICY IF NOT EXISTS "Service role full access beacons" ON beacons USING (true) WITH CHECK (true);
-CREATE POLICY IF NOT EXISTS "Service role full access appointments" ON appointments USING (true) WITH CHECK (true);
+DO $$ BEGIN
+  CREATE POLICY "Public read stores" ON stores FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "Public read products" ON products FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "Service role full access users" ON users USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "Service role full access stores" ON stores USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "Service role full access products" ON products USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "Service role full access orders" ON orders USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "Service role full access beacons" ON beacons USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "Service role full access appointments" ON appointments USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Başarılı mesajı
 DO $$ BEGIN
