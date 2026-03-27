@@ -12,6 +12,7 @@
     "test": "jest",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "clean": "rm -rf dist",
+    "db:test": "ts-node src/scripts/test-connection.ts",
     "migration:generate": "typeorm migration:generate",
     "migration:run": "typeorm migration:run"
   },

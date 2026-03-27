@@ -32,10 +32,15 @@ import { HealthModule } from './health/health.module';
 
         // Supabase veya DATABASE_URL varsa connection string kullan
         if (databaseUrl) {
+          const isPooler = databaseUrl.includes('pooler.supabase.com');
           return {
             ...baseConfig,
             url: databaseUrl,
             ssl: { rejectUnauthorized: false },
+            retryAttempts: 5,
+            retryDelay: 3000,
+            // Pooler (transaction mode) prepared statements desteklemez
+            ...(isPooler && { extra: { prepared: false } }),
           };
         }
 
