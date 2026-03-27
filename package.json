@@ -1,0 +1,27 @@
+{
+  "name": "beacon-bazaar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Konum bazlı e-ticaret platformu - Beacon Bazaar",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "cd apps/web && ../../node_modules/.bin/vite",
+    "dev:mobile": "yarn workspace @beacon-bazaar/mobile start",
+    "dev:backend": "yarn workspace @beacon-bazaar/backend start:dev",
+    "build:web": "yarn workspace @beacon-bazaar/web build",
+    "build:shared": "yarn workspace @beacon-bazaar/shared build",
+    "build:backend": "yarn workspace @beacon-bazaar/backend build",
+    "lint": "yarn workspaces foreach -A run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "test": "yarn workspaces foreach -A run test",
+    "clean": "yarn workspaces foreach -A run clean"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "license": "UNLICENSED"
+}
