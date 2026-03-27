@@ -10,7 +10,7 @@
   "scripts": {
     "dev:web": "cd apps/web && ../../node_modules/.bin/vite",
     "dev:mobile": "yarn workspace @beacon-bazaar/mobile start",
-    "dev:backend": "yarn workspace @beacon-bazaar/backend start:dev",
+    "dev:backend": "cd apps/backend && ../../node_modules/.bin/nest start --watch",
     "build:web": "yarn workspace @beacon-bazaar/web build",
     "build:shared": "yarn workspace @beacon-bazaar/shared build",
     "build:backend": "yarn workspace @beacon-bazaar/backend build",

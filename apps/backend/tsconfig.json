@@ -22,5 +22,6 @@
       "@config/*": ["src/config/*"],
       "@database/*": ["src/database/*"]
     }
-  }
+  },
+  "exclude": ["src/scripts"]
 }
