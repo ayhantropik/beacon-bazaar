@@ -22,7 +22,11 @@ import AddIcon from '@mui/icons-material/Add';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SecurityIcon from '@mui/icons-material/Security';
 import CachedIcon from '@mui/icons-material/Cached';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import apiClient from '@services/api/client';
+import { useAppDispatch } from '@store/hooks';
+import { addItem } from '@store/slices/cartSlice';
 
 interface ProductDetail {
   id: string;
@@ -56,10 +60,12 @@ interface ProductDetail {
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [snackOpen, setSnackOpen] = useState(false);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -216,6 +222,19 @@ export default function ProductDetailPage() {
               startIcon={<AddShoppingCartIcon />}
               sx={{ flex: 1, py: 1.5 }}
               disabled={product.stockQuantity === 0}
+              onClick={() => {
+                const price = hasDiscount ? Number(product.salePrice) : Number(product.price);
+                dispatch(addItem({
+                  id: product.id,
+                  productId: product.id,
+                  storeId: product.store?.id || '',
+                  name: product.name,
+                  thumbnail: product.thumbnail || images[0],
+                  price,
+                  quantity,
+                }));
+                setSnackOpen(true);
+              }}
             >
               Sepete Ekle
             </Button>
@@ -327,6 +346,12 @@ export default function ProductDetailPage() {
           ))}
         </Box>
       )}
+
+      <Snackbar open={snackOpen} autoHideDuration={3000} onClose={() => setSnackOpen(false)}>
+        <Alert onClose={() => setSnackOpen(false)} severity="success" variant="filled">
+          Ürün sepete eklendi!
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Put, Body, Get, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -42,5 +42,27 @@ export class AuthController {
   @ApiOperation({ summary: 'Profil bilgilerini getir' })
   async getProfile(@Request() req: { user: { id: string } }) {
     return this.authService.getProfile(req.user.id);
+  }
+
+  @Put('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Profil bilgilerini güncelle' })
+  async updateProfile(
+    @Request() req: { user: { id: string } },
+    @Body() dto: { name?: string; surname?: string; phone?: string },
+  ) {
+    return this.authService.updateProfile(req.user.id, dto);
+  }
+
+  @Put('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Şifre değiştir' })
+  async changePassword(
+    @Request() req: { user: { id: string } },
+    @Body() dto: { currentPassword: string; newPassword: string },
+  ) {
+    return this.authService.changePassword(req.user.id, dto.currentPassword, dto.newPassword);
   }
 }

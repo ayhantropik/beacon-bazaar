@@ -59,6 +59,21 @@ export class AuthService {
     return { success: true, data: userWithoutPassword };
   }
 
+  async updateProfile(userId: string, dto: { name?: string; surname?: string; phone?: string }) {
+    await this.userRepo.update(userId, dto);
+    return this.getProfile(userId);
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('Kullanıcı bulunamadı');
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) throw new UnauthorizedException('Mevcut şifre hatalı');
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await this.userRepo.update(userId, { password: hashedPassword });
+    return { success: true, message: 'Şifre değiştirildi' };
+  }
+
   private async generateTokens(userId: string, email: string, role: string) {
     const payload = { sub: userId, email, role };
     const [accessToken, refreshToken] = await Promise.all([
