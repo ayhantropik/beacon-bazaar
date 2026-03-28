@@ -57,7 +57,9 @@ export class ProductService {
   }
 
   async getById(id: string) {
-    const product = await this.productRepo.findOne({ where: { id }, relations: ['store'] });
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const where = isUuid ? { id } : { slug: id };
+    const product = await this.productRepo.findOne({ where, relations: ['store'] });
     if (!product) throw new NotFoundException('Ürün bulunamadı');
     return { success: true, data: product };
   }

@@ -9,6 +9,8 @@ export class StoreService {
   constructor(
     @InjectRepository(StoreEntity)
     private readonly storeRepo: Repository<StoreEntity>,
+    @InjectRepository(ProductEntity)
+    private readonly productRepo: Repository<ProductEntity>,
   ) {}
 
   async search(params: {
@@ -63,14 +65,27 @@ export class StoreService {
   }
 
   async getById(id: string) {
-    const store = await this.storeRepo.findOne({ where: { id } });
+    // Try by UUID first, then by slug
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const where = isUuid ? { id } : { slug: id };
+    const store = await this.storeRepo.findOne({ where });
     if (!store) throw new NotFoundException('Mağaza bulunamadı');
     return { success: true, data: store };
   }
 
   async getProducts(storeId: string, page: number, limit: number) {
-    // This would use ProductService in real implementation
-    return { success: true, data: [], pagination: { page, limit, total: 0, totalPages: 0 } };
+    const qb = this.productRepo
+      .createQueryBuilder('product')
+      .where('product.storeId = :storeId', { storeId })
+      .andWhere('product.isActive = true')
+      .orderBy('product.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const total = await qb.getCount();
+    const data = await qb.getMany();
+
+    return { success: true, data, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
   async follow(storeId: string) {

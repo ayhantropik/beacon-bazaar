@@ -8,6 +8,8 @@ const HomePage = lazy(() => import('@pages/HomePage'));
 const MapPage = lazy(() => import('@pages/MapPage'));
 const LoginPage = lazy(() => import('@pages/LoginPage'));
 const RegisterPage = lazy(() => import('@pages/RegisterPage'));
+const StoreDetailPage = lazy(() => import('@pages/StoreDetailPage'));
+const ProductDetailPage = lazy(() => import('@pages/ProductDetailPage'));
 const NotFoundPage = lazy(() => import('@pages/NotFoundPage'));
 
 function LazyLoad({ children }: { children: React.ReactNode }) {
@@ -24,6 +26,22 @@ export const router = createBrowserRouter([
         element: (
           <LazyLoad>
             <HomePage />
+          </LazyLoad>
+        ),
+      },
+      {
+        path: 'store/:slug',
+        element: (
+          <LazyLoad>
+            <StoreDetailPage />
+          </LazyLoad>
+        ),
+      },
+      {
+        path: 'product/:slug',
+        element: (
+          <LazyLoad>
+            <ProductDetailPage />
           </LazyLoad>
         ),
       },
