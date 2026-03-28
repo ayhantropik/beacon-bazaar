@@ -10,6 +10,11 @@ const LoginPage = lazy(() => import('@pages/LoginPage'));
 const RegisterPage = lazy(() => import('@pages/RegisterPage'));
 const StoreDetailPage = lazy(() => import('@pages/StoreDetailPage'));
 const ProductDetailPage = lazy(() => import('@pages/ProductDetailPage'));
+const SearchResultsPage = lazy(() => import('@pages/SearchResultsPage'));
+const CartPage = lazy(() => import('@pages/CartPage'));
+const CheckoutPage = lazy(() => import('@pages/CheckoutPage'));
+const ProfilePage = lazy(() => import('@pages/ProfilePage'));
+const OrdersPage = lazy(() => import('@pages/OrdersPage'));
 const NotFoundPage = lazy(() => import('@pages/NotFoundPage'));
 
 function LazyLoad({ children }: { children: React.ReactNode }) {
@@ -42,6 +47,46 @@ export const router = createBrowserRouter([
         element: (
           <LazyLoad>
             <ProductDetailPage />
+          </LazyLoad>
+        ),
+      },
+      {
+        path: 'search',
+        element: (
+          <LazyLoad>
+            <SearchResultsPage />
+          </LazyLoad>
+        ),
+      },
+      {
+        path: 'cart',
+        element: (
+          <LazyLoad>
+            <CartPage />
+          </LazyLoad>
+        ),
+      },
+      {
+        path: 'checkout',
+        element: (
+          <LazyLoad>
+            <CheckoutPage />
+          </LazyLoad>
+        ),
+      },
+      {
+        path: 'profile',
+        element: (
+          <LazyLoad>
+            <ProfilePage />
+          </LazyLoad>
+        ),
+      },
+      {
+        path: 'orders',
+        element: (
+          <LazyLoad>
+            <OrdersPage />
           </LazyLoad>
         ),
       },
