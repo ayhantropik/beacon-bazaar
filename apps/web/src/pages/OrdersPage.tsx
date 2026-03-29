@@ -180,7 +180,21 @@ export default function OrdersPage() {
                     {order.total.toLocaleString('tr-TR')} ₺
                   </Typography>
                   {order.status === 'pending' && (
-                    <Button variant="outlined" color="error" size="small">
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={async () => {
+                        try {
+                          await apiClient.put(`/orders/${order.id}/cancel`);
+                          setOrders((prev) =>
+                            prev.map((o) => (o.id === order.id ? { ...o, status: 'cancelled' } : o)),
+                          );
+                        } catch {
+                          // ignore
+                        }
+                      }}
+                    >
                       İptal Et
                     </Button>
                   )}

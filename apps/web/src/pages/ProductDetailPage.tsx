@@ -14,7 +14,8 @@ import Skeleton from '@mui/material/Skeleton';
 import Divider from '@mui/material/Divider';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import FavoriteIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteFilledIcon from '@mui/icons-material/Favorite';
 import ShareIcon from '@mui/icons-material/Share';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -25,8 +26,9 @@ import CachedIcon from '@mui/icons-material/Cached';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import apiClient from '@services/api/client';
-import { useAppDispatch } from '@store/hooks';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { addItem } from '@store/slices/cartSlice';
+import { toggleFavorite, selectIsFavorite } from '@store/slices/favoriteSlice';
 
 interface ProductDetail {
   id: string;
@@ -66,6 +68,8 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [snackOpen, setSnackOpen] = useState(false);
+  const isFavorite = useAppSelector(selectIsFavorite(slug || ''));
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -238,8 +242,14 @@ export default function ProductDetailPage() {
             >
               Sepete Ekle
             </Button>
-            <IconButton sx={{ border: 1, borderColor: 'divider' }}>
-              <FavoriteIcon />
+            <IconButton
+              sx={{ border: 1, borderColor: isFavorite ? 'error.main' : 'divider' }}
+              onClick={() => {
+                if (isAuthenticated && product) dispatch(toggleFavorite(product.id));
+                else navigate('/login');
+              }}
+            >
+              {isFavorite ? <FavoriteFilledIcon color="error" /> : <FavoriteBorderIcon />}
             </IconButton>
             <IconButton sx={{ border: 1, borderColor: 'divider' }}>
               <ShareIcon />

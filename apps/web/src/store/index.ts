@@ -5,6 +5,7 @@ import productReducer from './slices/productSlice';
 import storeReducer from './slices/storeSlice';
 import mapReducer from './slices/mapSlice';
 import uiReducer from './slices/uiSlice';
+import favoriteReducer from './slices/favoriteSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     store: storeReducer,
     map: mapReducer,
     ui: uiReducer,
+    favorites: favoriteReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

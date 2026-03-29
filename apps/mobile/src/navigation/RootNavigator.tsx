@@ -5,6 +5,7 @@ import type { RootStackParamList } from './types';
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
+import StoreDetailScreen from '../screens/StoreDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -20,6 +21,11 @@ export default function RootNavigator() {
             name="ProductDetail"
             component={ProductDetailScreen}
             options={{ headerShown: true, headerTitle: 'Ürün Detayı', headerBackTitle: 'Geri' }}
+          />
+          <Stack.Screen
+            name="StoreDetail"
+            component={StoreDetailScreen}
+            options={{ headerShown: true, headerTitle: 'Mağaza', headerBackTitle: 'Geri' }}
           />
         </>
       ) : (

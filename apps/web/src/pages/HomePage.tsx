@@ -23,8 +23,11 @@ import FitnessCenter from '@mui/icons-material/FitnessCenter';
 import Spa from '@mui/icons-material/Spa';
 import SearchBar from '@components/molecules/SearchBar';
 import { useNavigate } from 'react-router-dom';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import { useAppDispatch } from '@store/hooks';
 import { setUserLocation } from '@store/slices/mapSlice';
+import { addItem } from '@store/slices/cartSlice';
 import apiClient from '@services/api/client';
 
 interface StoreData {
@@ -80,6 +83,7 @@ export default function HomePage() {
   const [stores, setStores] = useState<StoreData[]>([]);
   const [products, setProducts] = useState<ProductData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [snackOpen, setSnackOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -293,7 +297,26 @@ export default function HomePage() {
                       <IconButton size="small" aria-label="favorilere ekle">
                         <FavoriteIcon fontSize="small" />
                       </IconButton>
-                      <IconButton size="small" color="primary" aria-label="sepete ekle" sx={{ ml: 'auto' }}>
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        aria-label="sepete ekle"
+                        sx={{ ml: 'auto' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const price = hasDiscount ? Number(product.salePrice) : Number(product.price);
+                          dispatch(addItem({
+                            id: product.id,
+                            productId: product.id,
+                            storeId: '',
+                            name: product.name,
+                            thumbnail: product.thumbnail,
+                            price,
+                            quantity: 1,
+                          }));
+                          setSnackOpen(true);
+                        }}
+                      >
                         <AddShoppingCartIcon fontSize="small" />
                       </IconButton>
                     </CardActions>
@@ -302,6 +325,12 @@ export default function HomePage() {
               );
             })}
       </Grid>
+
+      <Snackbar open={snackOpen} autoHideDuration={2000} onClose={() => setSnackOpen(false)}>
+        <Alert onClose={() => setSnackOpen(false)} severity="success" variant="filled">
+          Ürün sepete eklendi!
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
