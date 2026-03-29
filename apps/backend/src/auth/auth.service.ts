@@ -74,6 +74,24 @@ export class AuthService {
     return { success: true, message: 'Şifre değiştirildi' };
   }
 
+  async socialLogin(provider: string, payload: { email: string; name?: string; surname?: string; avatar?: string }) {
+    let user = await this.userRepo.findOne({ where: { email: payload.email } });
+    if (!user) {
+      const randomPassword = await bcrypt.hash(Math.random().toString(36), 12);
+      user = this.userRepo.create({
+        email: payload.email,
+        password: randomPassword,
+        name: payload.name || provider,
+        surname: payload.surname || 'User',
+        avatar: payload.avatar || undefined,
+      });
+      user = await this.userRepo.save(user);
+    }
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const { password: _, ...userWithoutPassword } = user;
+    return { success: true, data: { user: userWithoutPassword, tokens, provider } };
+  }
+
   private async generateTokens(userId: string, email: string, role: string) {
     const payload = { sub: userId, email, role };
     const [accessToken, refreshToken] = await Promise.all([

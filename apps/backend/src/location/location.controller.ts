@@ -19,6 +19,16 @@ export class LocationController {
     return this.locationService.reverseGeocode(lat, lng);
   }
 
+  @Get('nearby')
+  @ApiOperation({ summary: 'Yakındaki yerleri bul' })
+  async nearby(
+    @Query('latitude') latitude: number,
+    @Query('longitude') longitude: number,
+    @Query('radius') radius?: number,
+  ) {
+    return this.locationService.nearby(+latitude, +longitude, radius ? +radius : 5);
+  }
+
   @Post('route')
   @ApiOperation({ summary: 'Rota hesapla' })
   async getRoute(@Body() dto: { origin: { latitude: number; longitude: number }; destination: { latitude: number; longitude: number } }) {

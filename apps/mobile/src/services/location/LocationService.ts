@@ -1,3 +1,4 @@
+import { Platform, PermissionsAndroid } from 'react-native';
 import type { GeoPoint } from '@beacon-bazaar/shared';
 
 type LocationCallback = (location: GeoPoint) => void;
@@ -7,37 +8,69 @@ class LocationService {
   private listeners: LocationCallback[] = [];
 
   async requestPermissions(): Promise<boolean> {
-    // Platform-specific permissions
-    // iOS: requestWhenInUseAuthorization / requestAlwaysAuthorization
-    // Android: ACCESS_FINE_LOCATION / ACCESS_BACKGROUND_LOCATION
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Konum İzni',
+            message: 'Yakınındaki mağazaları gösterebilmek için konum iznine ihtiyacımız var.',
+            buttonPositive: 'İzin Ver',
+            buttonNegative: 'İptal',
+          },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch {
+        return false;
+      }
+    }
+    // iOS: Permissions handled by Info.plist + react-native-geolocation-service
     return true;
   }
 
   async getCurrentLocation(): Promise<GeoPoint> {
-    return new Promise((resolve, reject) => {
-      // Geolocation.getCurrentPosition implementation
-      // Using react-native-geolocation-service:
-      // Geolocation.getCurrentPosition(
-      //   (position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
-      //   (error) => reject(error),
-      //   { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-      // );
-      resolve({ latitude: 41.0082, longitude: 28.9784 }); // Default Istanbul
+    const hasPermission = await this.requestPermissions();
+    if (!hasPermission) {
+      return { latitude: 41.0082, longitude: 28.9784 }; // Default Istanbul
+    }
+
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        () => {
+          // Fallback to Istanbul on error
+          resolve({ latitude: 41.0082, longitude: 28.9784 });
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+      );
     });
   }
 
   startWatching(callback: LocationCallback): void {
     this.listeners.push(callback);
-    // Geolocation.watchPosition(
-    //   (position) => { ... },
-    //   (error) => console.error(error),
-    //   { enableHighAccuracy: true, distanceFilter: 10, interval: 5000 }
-    // );
+    if (this.watchId !== null) return;
+
+    this.watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const loc: GeoPoint = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        this.listeners.forEach((cb) => cb(loc));
+      },
+      (error) => console.warn('Location watch error:', error.message),
+      { enableHighAccuracy: true, distanceFilter: 10 },
+    );
   }
 
   stopWatching(): void {
     if (this.watchId !== null) {
-      // Geolocation.clearWatch(this.watchId);
+      navigator.geolocation.clearWatch(this.watchId);
       this.watchId = null;
     }
     this.listeners = [];

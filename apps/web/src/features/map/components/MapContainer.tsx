@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import Box from '@mui/material/Box';
 import { useAppSelector, useAppDispatch } from '@store/hooks';
 import { setCenter, setZoom, selectMarker } from '@store/slices/mapSlice';
-import type { GeoPoint, Store } from '@beacon-bazaar/shared';
+import type { Store } from '@beacon-bazaar/shared';
 import { env } from '@config/env';
 import MapControls from './MapControls';
 import StoreInfoPanel from './StoreInfoPanel';
@@ -24,7 +24,7 @@ export default function MapContainer({
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const dispatch = useAppDispatch();
-  const { center, zoom, userLocation, selectedMarkerId, mapStyle } = useAppSelector(
+  const { center, zoom, userLocation, mapStyle } = useAppSelector(
     (state) => state.map,
   );
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);

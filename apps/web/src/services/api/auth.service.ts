@@ -35,4 +35,7 @@ export const authService = {
 
   updateProfile: (data: Partial<User>) =>
     apiClient.put<ApiResponse<User>>('/auth/profile', data).then((res) => res.data),
+
+  socialLogin: (provider: string, payload: { email: string; name?: string; surname?: string; avatar?: string }) =>
+    apiClient.post<ApiResponse<AuthResponse & { provider: string }>>('/auth/social-login', { provider, ...payload }).then((res) => res.data),
 };

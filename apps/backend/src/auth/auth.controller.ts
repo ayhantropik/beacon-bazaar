@@ -55,6 +55,12 @@ export class AuthController {
     return this.authService.updateProfile(req.user.id, dto);
   }
 
+  @Post('social-login')
+  @ApiOperation({ summary: 'Sosyal medya ile giriş' })
+  async socialLogin(@Body() dto: { provider: string; email: string; name?: string; surname?: string; avatar?: string }) {
+    return this.authService.socialLogin(dto.provider, dto);
+  }
+
   @Put('change-password')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

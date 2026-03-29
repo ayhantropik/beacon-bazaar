@@ -1,14 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../database/entities';
-
-interface PushNotification {
-  title: string;
-  body: string;
-  data?: Record<string, string>;
-  tokens: string[];
-}
+import { UserEntity, NotificationEntity } from '../database/entities';
 
 interface NotificationPayload {
   userId: string;
@@ -25,14 +18,9 @@ export class NotificationService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    @InjectRepository(NotificationEntity)
+    private readonly notificationRepo: Repository<NotificationEntity>,
   ) {}
-
-  async sendPush(notification: PushNotification): Promise<{ sent: number; failed: number }> {
-    // In production: Firebase Admin SDK
-    // admin.messaging().sendEachForMulticast({ tokens, notification: { title, body }, data })
-    this.logger.log(`Push notification: "${notification.title}" -> ${notification.tokens.length} devices`);
-    return { sent: notification.tokens.length, failed: 0 };
-  }
 
   async sendToUser(payload: NotificationPayload): Promise<void> {
     const user = await this.userRepo.findOne({ where: { id: payload.userId } });
@@ -41,11 +29,46 @@ export class NotificationService {
       return;
     }
 
-    // In production: get user's FCM tokens from a device_tokens table
-    this.logger.log(`Notification [${payload.type}] to ${user.email}: ${payload.title}`);
+    // Save in-app notification
+    const notification = this.notificationRepo.create({
+      userId: payload.userId,
+      type: payload.type,
+      title: payload.title,
+      body: payload.body,
+      data: payload.data || {},
+    });
+    await this.notificationRepo.save(notification);
 
-    // Store in-app notification for the user
-    // In production: save to notifications table and emit via WebSocket/SSE
+    this.logger.log(`Notification [${payload.type}] to ${user.email}: ${payload.title}`);
+  }
+
+  async getByUser(userId: string, page = 1, limit = 20) {
+    const [data, total] = await this.notificationRepo.findAndCount({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return {
+      success: true,
+      data,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async markAsRead(userId: string, notificationId: string) {
+    await this.notificationRepo.update({ id: notificationId, userId }, { isRead: true });
+    return { success: true, message: 'Bildirim okundu olarak işaretlendi' };
+  }
+
+  async markAllAsRead(userId: string) {
+    await this.notificationRepo.update({ userId, isRead: false }, { isRead: true });
+    return { success: true, message: 'Tüm bildirimler okundu' };
+  }
+
+  async getUnreadCount(userId: string) {
+    const count = await this.notificationRepo.count({ where: { userId, isRead: false } });
+    return { success: true, data: { count } };
   }
 
   async sendBeaconNotification(userId: string, storeId: string, beaconId: string): Promise<void> {
@@ -60,6 +83,7 @@ export class NotificationService {
 
   async sendOrderUpdate(userId: string, orderId: string, status: string): Promise<void> {
     const statusMessages: Record<string, string> = {
+      pending: 'Siparişiniz alındı',
       confirmed: 'Siparişiniz onaylandı',
       preparing: 'Siparişiniz hazırlanıyor',
       shipped: 'Siparişiniz kargoya verildi',

@@ -1,3 +1,4 @@
+import { Platform, PermissionsAndroid } from 'react-native';
 import type { BeaconDetection } from '@beacon-bazaar/shared';
 
 type BeaconCallback = (beacons: BeaconDetection[]) => void;
@@ -5,16 +6,36 @@ type BeaconCallback = (beacons: BeaconDetection[]) => void;
 class BeaconService {
   private isScanning = false;
   private listeners: BeaconCallback[] = [];
+  private scanInterval: ReturnType<typeof setInterval> | null = null;
 
   async requestPermissions(): Promise<boolean> {
-    // Platform-specific permission requests
-    // iOS: Core Location + Bluetooth
-    // Android: ACCESS_FINE_LOCATION + BLUETOOTH_SCAN + BLUETOOTH_CONNECT
+    if (Platform.OS === 'android') {
+      try {
+        const permissions = [
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        ];
+        // Android 12+ needs BLUETOOTH_SCAN and BLUETOOTH_CONNECT
+        if (Platform.Version >= 31) {
+          permissions.push(
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+          );
+        }
+        const results = await PermissionsAndroid.requestMultiple(permissions);
+        return Object.values(results).every(
+          (r) => r === PermissionsAndroid.RESULTS.GRANTED,
+        );
+      } catch {
+        return false;
+      }
+    }
+    // iOS: Bluetooth and location permissions handled by Info.plist
     return true;
   }
 
   async checkBluetoothState(): Promise<boolean> {
-    // Check if Bluetooth is enabled
+    // In production: Use react-native-ble-plx BleManager.state()
+    // Returns true optimistically; actual BLE state check requires native module
     return true;
   }
 
@@ -28,25 +49,36 @@ class BeaconService {
 
     const btEnabled = await this.checkBluetoothState();
     if (!btEnabled) {
-      throw new Error('Bluetooth kapalı. Lütfen Bluetooth\'u açın');
+      throw new Error("Bluetooth kapalı. Lütfen Bluetooth'u açın");
     }
 
     this.isScanning = true;
 
-    // BLE scanning implementation
-    // Using react-native-ble-plx:
-    // manager.startDeviceScan(
-    //   [uuid],
-    //   { allowDuplicates: true },
-    //   (error, device) => { ... }
-    // );
+    // Production implementation with react-native-ble-plx:
+    // const manager = new BleManager();
+    // manager.startDeviceScan([uuid], { allowDuplicates: true }, (error, device) => {
+    //   if (error) { console.warn('BLE scan error:', error); return; }
+    //   if (device) {
+    //     const beacon: BeaconDetection = {
+    //       uuid, major: parseMajor(device), minor: parseMinor(device),
+    //       rssi: device.rssi || -100, distance: this.calculateDistance(device.rssi || -100, -59),
+    //       proximity: this.getProximity(this.calculateDistance(device.rssi || -100, -59)),
+    //       timestamp: new Date(),
+    //     };
+    //     this.notifyListeners([beacon]);
+    //   }
+    // });
 
     console.log(`Beacon scanning started for UUID: ${uuid}`);
   }
 
   async stopScanning(): Promise<void> {
     this.isScanning = false;
-    // manager.stopDeviceScan();
+    if (this.scanInterval) {
+      clearInterval(this.scanInterval);
+      this.scanInterval = null;
+    }
+    // Production: manager.stopDeviceScan();
     console.log('Beacon scanning stopped');
   }
 

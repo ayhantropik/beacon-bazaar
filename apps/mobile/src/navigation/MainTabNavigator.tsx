@@ -6,11 +6,7 @@ import HomeScreen from '../screens/HomeScreen';
 import SearchScreen from '../screens/SearchScreen';
 import CartScreen from '../screens/CartScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-
-// Map screen placeholder until map library is configured
-function MapScreen() {
-  return null;
-}
+import MapScreen from '../screens/MapScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 

@@ -1,7 +1,10 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import MuiButton from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
+import { authService } from '@services/api/auth.service';
 
 const GOOGLE_SVG = (
   <svg width="20" height="20" viewBox="0 0 24 24">
@@ -31,10 +34,32 @@ interface SocialLoginButtonsProps {
 
 export default function SocialLoginButtons({ mode, position = 'bottom' }: SocialLoginButtonsProps) {
   const label = mode === 'login' ? 'ile giriş yap' : 'ile kayıt ol';
+  const navigate = useNavigate();
+  const [, setLoading] = useState<string | null>(null);
 
-  const handleSocialLogin = (provider: string) => {
-    // TODO: Supabase OAuth entegrasyonu
-    console.log(`${provider} ${label}`);
+  const handleSocialLogin = async (provider: string) => {
+    setLoading(provider);
+    try {
+      // Demo: Simulate OAuth flow by using a mock email
+      // In production: Replace with real OAuth popup (Google Identity Services, Apple Sign-In, Facebook SDK)
+      const demoEmail = `${provider}.user.${Date.now()}@demo.beaconbazaar.com`;
+      const response = await authService.socialLogin(provider, {
+        email: demoEmail,
+        name: provider.charAt(0).toUpperCase() + provider.slice(1),
+        surname: 'User',
+      });
+
+      if (response.data?.tokens) {
+        localStorage.setItem('access_token', response.data.tokens.accessToken);
+        localStorage.setItem('refresh_token', response.data.tokens.refreshToken);
+        navigate('/');
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error(`${provider} login failed:`, err);
+    } finally {
+      setLoading(null);
+    }
   };
 
   const dividerText = position === 'top' ? 'veya e-posta ile' : 'veya';

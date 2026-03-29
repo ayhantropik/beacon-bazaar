@@ -6,3 +6,4 @@ export { BeaconEntity } from './beacon.entity';
 export { AppointmentEntity } from './appointment.entity';
 export { FavoriteEntity } from './favorite.entity';
 export { AddressEntity } from './address.entity';
+export { NotificationEntity } from './notification.entity';
