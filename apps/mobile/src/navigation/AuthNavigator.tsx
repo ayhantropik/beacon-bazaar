@@ -1,14 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from './types';
-
-// Placeholder screens
-function LoginScreen() {
-  return null;
-}
-function RegisterScreen() {
-  return null;
-}
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 

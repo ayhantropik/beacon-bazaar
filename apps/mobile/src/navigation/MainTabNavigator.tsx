@@ -1,21 +1,14 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import type { MainTabParamList } from './types';
+import HomeScreen from '../screens/HomeScreen';
+import SearchScreen from '../screens/SearchScreen';
+import CartScreen from '../screens/CartScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
-// Placeholder screens
-function HomeScreen() {
-  return null;
-}
+// Map screen placeholder until map library is configured
 function MapScreen() {
-  return null;
-}
-function SearchScreen() {
-  return null;
-}
-function CartScreen() {
-  return null;
-}
-function ProfileScreen() {
   return null;
 }
 
@@ -41,27 +34,42 @@ export default function MainTabNavigator() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarLabel: 'Ana Sayfa' }}
+        options={{
+          tabBarLabel: 'Ana Sayfa',
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="home" color={color} size={size} />,
+        }}
       />
       <Tab.Screen
         name="Map"
         component={MapScreen}
-        options={{ tabBarLabel: 'Harita' }}
+        options={{
+          tabBarLabel: 'Harita',
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="map-marker" color={color} size={size} />,
+        }}
       />
       <Tab.Screen
         name="Search"
         component={SearchScreen}
-        options={{ tabBarLabel: 'Ara' }}
+        options={{
+          tabBarLabel: 'Ara',
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="magnify" color={color} size={size} />,
+        }}
       />
       <Tab.Screen
         name="Cart"
         component={CartScreen}
-        options={{ tabBarLabel: 'Sepet' }}
+        options={{
+          tabBarLabel: 'Sepet',
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="cart" color={color} size={size} />,
+        }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ tabBarLabel: 'Profil' }}
+        options={{
+          tabBarLabel: 'Profil',
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="account" color={color} size={size} />,
+        }}
       />
     </Tab.Navigator>
   );

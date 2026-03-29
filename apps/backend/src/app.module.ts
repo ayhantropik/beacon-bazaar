@@ -12,6 +12,7 @@ import { SearchModule } from './search/search.module';
 import { NotificationModule } from './notification/notification.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { PaymentModule } from './payment/payment.module';
+import { FavoriteModule } from './favorite/favorite.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -66,6 +67,7 @@ import { HealthModule } from './health/health.module';
     NotificationModule,
     AppointmentModule,
     PaymentModule,
+    FavoriteModule,
     HealthModule,
   ],
 })

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { PaymentService } from './payment.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,5 +20,11 @@ export class PaymentController {
   @ApiOperation({ summary: 'Ödeme callback' })
   async callback(@Body() dto: Record<string, unknown>) {
     return this.paymentService.handleCallback(dto);
+  }
+
+  @Post(':orderId/refund')
+  @ApiOperation({ summary: 'İade başlat' })
+  async refund(@Param('orderId') orderId: string) {
+    return this.paymentService.refund(orderId);
   }
 }

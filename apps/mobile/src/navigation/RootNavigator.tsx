@@ -4,6 +4,7 @@ import { useAppSelector } from '../store/hooks';
 import type { RootStackParamList } from './types';
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
+import ProductDetailScreen from '../screens/ProductDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -15,7 +16,11 @@ export default function RootNavigator() {
       {isAuthenticated ? (
         <>
           <Stack.Screen name="Main" component={MainTabNavigator} />
-          {/* Detail screens will be added here */}
+          <Stack.Screen
+            name="ProductDetail"
+            component={ProductDetailScreen}
+            options={{ headerShown: true, headerTitle: 'Ürün Detayı', headerBackTitle: 'Geri' }}
+          />
         </>
       ) : (
         <Stack.Screen name="Auth" component={AuthNavigator} />
