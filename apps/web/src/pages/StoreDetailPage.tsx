@@ -15,6 +15,8 @@ import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -24,6 +26,8 @@ import FavoriteIcon from '@mui/icons-material/FavoriteBorder';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import ShareIcon from '@mui/icons-material/Share';
 import apiClient from '@services/api/client';
+import { useAppDispatch } from '@store/hooks';
+import { addItem } from '@store/slices/cartSlice';
 
 interface StoreDetail {
   id: string;
@@ -59,10 +63,13 @@ interface ProductData {
 export default function StoreDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [store, setStore] = useState<StoreDetail | null>(null);
   const [products, setProducts] = useState<ProductData[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState(0);
+  const [snackOpen, setSnackOpen] = useState(false);
+  const [following, setFollowing] = useState(false);
 
   useEffect(() => {
     async function fetchStore() {
@@ -166,8 +173,12 @@ export default function StoreDetailPage() {
             </Box>
           </Box>
           <Box display="flex" gap={1}>
-            <Button variant="contained" size="small">
-              Takip Et
+            <Button
+              variant={following ? 'outlined' : 'contained'}
+              size="small"
+              onClick={() => setFollowing((f) => !f)}
+            >
+              {following ? 'Takip Ediliyor' : 'Takip Et'}
             </Button>
             <IconButton size="small">
               <ShareIcon />
@@ -273,7 +284,26 @@ export default function StoreDetailPage() {
                       <IconButton size="small" aria-label="favorilere ekle">
                         <FavoriteIcon fontSize="small" />
                       </IconButton>
-                      <IconButton size="small" color="primary" aria-label="sepete ekle" sx={{ ml: 'auto' }}>
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        aria-label="sepete ekle"
+                        sx={{ ml: 'auto' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const price = hasDiscount ? Number(product.salePrice) : Number(product.price);
+                          dispatch(addItem({
+                            id: product.id,
+                            productId: product.id,
+                            storeId: store?.id || '',
+                            name: product.name,
+                            thumbnail: product.thumbnail,
+                            price,
+                            quantity: 1,
+                          }));
+                          setSnackOpen(true);
+                        }}
+                      >
                         <AddShoppingCartIcon fontSize="small" />
                       </IconButton>
                     </CardActions>
@@ -333,6 +363,12 @@ export default function StoreDetailPage() {
           )}
         </Box>
       )}
+
+      <Snackbar open={snackOpen} autoHideDuration={2000} onClose={() => setSnackOpen(false)}>
+        <Alert onClose={() => setSnackOpen(false)} severity="success" variant="filled">
+          Ürün sepete eklendi!
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

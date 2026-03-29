@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderEntity } from '../database/entities';
 
-interface PaymentResult {
+export interface PaymentResult {
   paymentId: string;
   orderId: string;
   status: 'pending' | 'paid' | 'failed';

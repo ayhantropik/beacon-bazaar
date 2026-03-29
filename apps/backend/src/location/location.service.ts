@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-interface GeoResult {
+export interface GeoResult {
   latitude: number;
   longitude: number;
   address: string;

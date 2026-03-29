@@ -27,8 +27,12 @@ import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import TuneIcon from '@mui/icons-material/Tune';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import SearchBar from '@components/molecules/SearchBar';
 import apiClient from '@services/api/client';
+import { useAppDispatch } from '@store/hooks';
+import { addItem } from '@store/slices/cartSlice';
 
 interface ProductResult {
   id: string;
@@ -69,6 +73,7 @@ const CATEGORIES = ['Elektronik', 'Giyim', 'Gıda', 'Kitap', 'Spor', 'Kozmetik',
 export default function SearchResultsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const query = searchParams.get('q') || '';
   const categoryParam = searchParams.get('category') || '';
 
@@ -82,6 +87,7 @@ export default function SearchResultsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [snackOpen, setSnackOpen] = useState(false);
 
   const fetchResults = useCallback(async () => {
     setLoading(true);
@@ -293,7 +299,26 @@ export default function SearchResultsPage() {
                           <IconButton size="small" aria-label="favorilere ekle">
                             <FavoriteIcon fontSize="small" />
                           </IconButton>
-                          <IconButton size="small" color="primary" aria-label="sepete ekle" sx={{ ml: 'auto' }}>
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            aria-label="sepete ekle"
+                            sx={{ ml: 'auto' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const price = hasDiscount ? Number(product.salePrice) : Number(product.price);
+                              dispatch(addItem({
+                                id: product.id,
+                                productId: product.id,
+                                storeId: '',
+                                name: product.name,
+                                thumbnail: product.thumbnail,
+                                price,
+                                quantity: 1,
+                              }));
+                              setSnackOpen(true);
+                            }}
+                          >
                             <AddShoppingCartIcon fontSize="small" />
                           </IconButton>
                         </CardActions>
@@ -372,6 +397,11 @@ export default function SearchResultsPage() {
               ))}
         </Grid>
       )}
+      <Snackbar open={snackOpen} autoHideDuration={2000} onClose={() => setSnackOpen(false)}>
+        <Alert onClose={() => setSnackOpen(false)} severity="success" variant="filled">
+          Ürün sepete eklendi!
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
