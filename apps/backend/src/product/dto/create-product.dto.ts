@@ -6,6 +6,7 @@ export class CreateProductDto {
   @ApiProperty() @IsString() name: string;
   @ApiProperty() @IsString() description: string;
   @ApiPropertyOptional() @IsOptional() @IsString() shortDescription?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() slug?: string;
   @ApiProperty() @IsNumber() @Min(0) price: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) salePrice?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() currency?: string;

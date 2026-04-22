@@ -1,4 +1,4 @@
-import { Controller, Post, Put, Body, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Put, Body, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -14,6 +14,24 @@ export class AuthController {
   @ApiOperation({ summary: 'Kullanıcı girişi' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Get('verify-email')
+  @ApiOperation({ summary: 'E-posta onayı' })
+  async verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
+  }
+
+  @Get('verify-store')
+  @ApiOperation({ summary: 'Mağaza sahibi e-posta onayı (eski uyumluluk)' })
+  async verifyStore(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
+  }
+
+  @Post('resend-verification')
+  @ApiOperation({ summary: 'Onay e-postasını tekrar gönder' })
+  async resendVerification(@Body('email') email: string) {
+    return this.authService.resendVerification(email);
   }
 
   @Post('register')

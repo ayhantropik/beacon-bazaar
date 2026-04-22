@@ -9,7 +9,11 @@ interface MapState {
   locationError: string | null;
   selectedMarkerId: string | null;
   showHeatmap: boolean;
-  mapStyle: 'default' | 'satellite' | 'terrain';
+  mapStyle: 'default' | 'satellite' | 'terrain' | 'dark' | 'hybrid';
+  // Indoor Maps
+  indoorEnabled: boolean;
+  activeIndoorMapId: string | null;
+  activeFloor: number;
 }
 
 const ISTANBUL_CENTER: GeoPoint = { latitude: 41.0082, longitude: 28.9784 };
@@ -22,7 +26,10 @@ const initialState: MapState = {
   locationError: null,
   selectedMarkerId: null,
   showHeatmap: false,
-  mapStyle: 'default',
+  mapStyle: 'hybrid',
+  indoorEnabled: false,
+  activeIndoorMapId: null,
+  activeFloor: 0,
 };
 
 const mapSlice = createSlice({
@@ -56,6 +63,15 @@ const mapSlice = createSlice({
     setMapStyle: (state, action: PayloadAction<MapState['mapStyle']>) => {
       state.mapStyle = action.payload;
     },
+    setIndoorEnabled: (state, action: PayloadAction<boolean>) => {
+      state.indoorEnabled = action.payload;
+    },
+    setActiveIndoorMap: (state, action: PayloadAction<string | null>) => {
+      state.activeIndoorMapId = action.payload;
+    },
+    setActiveFloor: (state, action: PayloadAction<number>) => {
+      state.activeFloor = action.payload;
+    },
   },
 });
 
@@ -68,5 +84,8 @@ export const {
   selectMarker,
   toggleHeatmap,
   setMapStyle,
+  setIndoorEnabled,
+  setActiveIndoorMap,
+  setActiveFloor,
 } = mapSlice.actions;
 export default mapSlice.reducer;

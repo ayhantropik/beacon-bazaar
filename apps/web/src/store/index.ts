@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './slices/authSlice';
+import authReducer, { initAuth } from './slices/authSlice';
 import cartReducer from './slices/cartSlice';
 import productReducer from './slices/productSlice';
 import storeReducer from './slices/storeSlice';
@@ -25,6 +25,9 @@ export const store = configureStore({
     }),
   devTools: import.meta.env.DEV,
 });
+
+// Restore auth session from localStorage on app start
+store.dispatch(initAuth());
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

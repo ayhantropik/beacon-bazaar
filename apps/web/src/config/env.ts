@@ -14,7 +14,7 @@ export const env = {
     appId: import.meta.env.VITE_ALGOLIA_APP_ID || '',
     searchKey: import.meta.env.VITE_ALGOLIA_SEARCH_KEY || '',
   },
-  appName: import.meta.env.VITE_APP_NAME || 'Beacon Bazaar',
+  appName: import.meta.env.VITE_APP_NAME || 'VeniVidiCoop',
   appVersion: import.meta.env.VITE_APP_VERSION || '1.0.0',
   isDev: import.meta.env.DEV,
   isProd: import.meta.env.PROD,

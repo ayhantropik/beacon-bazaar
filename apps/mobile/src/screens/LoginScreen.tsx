@@ -27,7 +27,7 @@ export default function LoginScreen({ navigation }: Props) {
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text variant="headlineLarge" style={styles.title}>
-          Beacon Bazaar
+          VeniVidiCoop
         </Text>
         <Text variant="titleMedium" style={styles.subtitle}>
           Giriş Yap

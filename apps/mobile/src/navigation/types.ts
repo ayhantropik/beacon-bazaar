@@ -9,6 +9,8 @@ export type RootStackParamList = {
   ProductDetail: { productId: string };
   Checkout: undefined;
   OrderDetail: { orderId: string };
+  Orders: undefined;
+  Favorites: undefined;
   AppointmentBooking: { storeId: string };
 };
 
@@ -16,6 +18,7 @@ export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
+  EmailVerification: { email: string };
 };
 
 export type MainTabParamList = {

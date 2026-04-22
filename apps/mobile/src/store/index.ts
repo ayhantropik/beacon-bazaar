@@ -6,11 +6,14 @@ import cartReducer from './slices/cartSlice';
 import mapReducer from './slices/mapSlice';
 import beaconReducer from './slices/beaconSlice';
 import uiReducer from './slices/uiSlice';
+import storeReducer from './slices/storeSlice';
+import productReducer from './slices/productSlice';
+import favoriteReducer from './slices/favoriteSlice';
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth', 'cart'],
+  whitelist: ['auth', 'cart', 'favorites'],
 };
 
 const rootReducer = combineReducers({
@@ -19,6 +22,9 @@ const rootReducer = combineReducers({
   map: mapReducer,
   beacon: beaconReducer,
   ui: uiReducer,
+  store: storeReducer,
+  product: productReducer,
+  favorites: favoriteReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

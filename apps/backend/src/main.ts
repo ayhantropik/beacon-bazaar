@@ -29,7 +29,7 @@ async function bootstrap() {
 
   // Swagger
   const config = new DocumentBuilder()
-    .setTitle('Beacon Bazaar API')
+    .setTitle('VeniVidiCoop API')
     .setDescription('Konum bazlı e-ticaret platformu API dokümantasyonu')
     .setVersion('1.0')
     .addBearerAuth()
@@ -47,7 +47,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 4000;
   await app.listen(port);
-  console.log(`Beacon Bazaar API running on http://localhost:${port}`);
+  console.log(`VeniVidiCoop API running on http://localhost:${port}`);
   console.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
 bootstrap();

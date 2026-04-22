@@ -12,7 +12,7 @@ export default function Footer() {
         <Grid container spacing={4}>
           <Grid item xs={12} md={4}>
             <Typography variant="h6" fontFamily="'Plus Jakarta Sans'" fontWeight={800} gutterBottom>
-              Beacon Bazaar
+              VeniVidiCoop
             </Typography>
             <Typography variant="body2" color="grey.400" maxWidth={300}>
               Konum bazlı alışveriş deneyimi ile yakınındaki mağazaları keşfet, ürünleri karşılaştır
@@ -57,7 +57,7 @@ export default function Footer() {
             <Typography variant="subtitle2" fontWeight={600} gutterBottom>
               Mağaza Sahipleri
             </Typography>
-            {['Mağaza Aç', 'Beacon Kurulumu', 'Fiyatlandırma', 'Destek'].map((item) => (
+            {['Mağaza Aç', 'VeniVidiCoop Kurulumu', 'Fiyatlandırma', 'Destek'].map((item) => (
               <Typography key={item} variant="body2" color="grey.400" sx={{ mb: 0.5 }}>
                 <Link href="#" color="inherit" underline="hover">{item}</Link>
               </Typography>
@@ -69,7 +69,7 @@ export default function Footer() {
 
         <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
           <Typography variant="body2" color="grey.500">
-            &copy; 2026 Beacon Bazaar. Tüm hakları saklıdır.
+            &copy; 2026 VeniVidiCoop. Tüm hakları saklıdır.
           </Typography>
           <Box display="flex" gap={1}>
             {['KVKK', 'Kullanım Koşulları', 'Çerez Politikası'].map((item) => (

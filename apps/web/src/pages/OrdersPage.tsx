@@ -9,6 +9,8 @@ import Skeleton from '@mui/material/Skeleton';
 import Divider from '@mui/material/Divider';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import IconButton from '@mui/material/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -19,6 +21,7 @@ import { useAppSelector } from '@store/hooks';
 
 interface OrderItem {
   productId: string;
+  storeId?: string;
   name: string;
   thumbnail: string;
   price: number;
@@ -48,7 +51,7 @@ const STATUS_MAP: Record<string, { label: string; color: 'default' | 'warning' |
 
 export default function OrdersPage() {
   const navigate = useNavigate();
-  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+  const { isAuthenticated, isLoading: authLoading } = useAppSelector((s) => s.auth);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState(0);
@@ -68,6 +71,17 @@ export default function OrdersPage() {
     else setLoading(false);
   }, [isAuthenticated]);
 
+  if (authLoading) {
+    return (
+      <Box>
+        <Skeleton variant="text" width={200} height={40} sx={{ mb: 3 }} />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} variant="rounded" height={120} sx={{ mb: 2 }} />
+        ))}
+      </Box>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <Box textAlign="center" py={8}>
@@ -85,13 +99,18 @@ export default function OrdersPage() {
     ? orders
     : tab === 1
       ? orders.filter((o) => ['pending', 'confirmed', 'preparing', 'shipped'].includes(o.status))
-      : orders.filter((o) => ['delivered'].includes(o.status));
+      : orders.filter((o) => ['delivered', 'cancelled', 'refunded'].includes(o.status));
 
   return (
     <Box>
-      <Typography variant="h5" fontWeight={700} mb={3}>
-        Siparişlerim
-      </Typography>
+      <Box display="flex" alignItems="center" gap={1} mb={3}>
+        <IconButton onClick={() => navigate(-1)}>
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography variant="h5" fontWeight={700}>
+          Siparişlerim
+        </Typography>
+      </Box>
 
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
         <Tab label={`Tümü (${orders.length})`} />
@@ -198,8 +217,12 @@ export default function OrdersPage() {
                       İptal Et
                     </Button>
                   )}
-                  {order.status === 'delivered' && (
-                    <Button variant="outlined" size="small">
+                  {order.status === 'delivered' && order.items[0]?.storeId && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => navigate(`/store/${order.items[0].storeId}?tab=reviews`)}
+                    >
                       Değerlendir
                     </Button>
                   )}

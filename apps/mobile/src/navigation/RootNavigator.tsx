@@ -6,6 +6,10 @@ import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import StoreDetailScreen from '../screens/StoreDetailScreen';
+import CheckoutScreen from '../screens/CheckoutScreen';
+import OrdersScreen from '../screens/OrdersScreen';
+import OrderDetailScreen from '../screens/OrderDetailScreen';
+import FavoritesScreen from '../screens/FavoritesScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -26,6 +30,26 @@ export default function RootNavigator() {
             name="StoreDetail"
             component={StoreDetailScreen}
             options={{ headerShown: true, headerTitle: 'Mağaza', headerBackTitle: 'Geri' }}
+          />
+          <Stack.Screen
+            name="Checkout"
+            component={CheckoutScreen}
+            options={{ headerShown: true, headerTitle: 'Siparişi Tamamla', headerBackTitle: 'Geri' }}
+          />
+          <Stack.Screen
+            name="Orders"
+            component={OrdersScreen}
+            options={{ headerShown: true, headerTitle: 'Siparişlerim', headerBackTitle: 'Geri' }}
+          />
+          <Stack.Screen
+            name="OrderDetail"
+            component={OrderDetailScreen}
+            options={{ headerShown: true, headerTitle: 'Sipariş Detayı', headerBackTitle: 'Geri' }}
+          />
+          <Stack.Screen
+            name="Favorites"
+            component={FavoritesScreen}
+            options={{ headerShown: true, headerTitle: 'Favorilerim', headerBackTitle: 'Geri' }}
           />
         </>
       ) : (

@@ -31,7 +31,7 @@ export default function AuthTemplate() {
           color="primary"
           mb={3}
         >
-          Beacon Bazaar
+          VeniVidiCoop
         </Typography>
         <Outlet />
       </Paper>

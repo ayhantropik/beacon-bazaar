@@ -45,6 +45,11 @@ apiClient.interceptors.response.use(
       }
     }
 
+    // Axios hata mesajını backend'den gelen mesajla zenginleştir
+    const respData = error.response?.data as Record<string, unknown> | undefined;
+    if (respData?.message && typeof respData.message === 'string') {
+      error.message = respData.message;
+    }
     return Promise.reject(error);
   },
 );

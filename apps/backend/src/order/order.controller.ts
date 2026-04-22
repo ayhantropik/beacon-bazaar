@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,6 +22,23 @@ export class OrderController {
     return this.orderService.getByUserId(req.user.id, page);
   }
 
+  @Get('my-store')
+  @ApiOperation({ summary: 'Mağazamın siparişleri' })
+  async getStoreOrders(
+    @Request() req: { user: { id: string } },
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('status') status?: string,
+  ) {
+    return this.orderService.getByStoreOwnerId(req.user.id, { page: Number(page), limit: Number(limit), status });
+  }
+
+  @Get('my-store/stats')
+  @ApiOperation({ summary: 'Mağazamın sipariş istatistikleri' })
+  async getStoreOrderStats(@Request() req: { user: { id: string } }) {
+    return this.orderService.getStoreOrderStats(req.user.id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Sipariş detayı' })
   async getById(@Param('id') id: string) {
@@ -32,6 +49,12 @@ export class OrderController {
   @ApiOperation({ summary: 'Sipariş takibi' })
   async track(@Param('id') id: string) {
     return this.orderService.track(id);
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Sipariş durumu güncelle' })
+  async updateStatus(@Param('id') id: string, @Body() dto: { status: string }) {
+    return this.orderService.updateStatus(id, dto.status);
   }
 
   @Put(':id/cancel')

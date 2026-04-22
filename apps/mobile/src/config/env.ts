@@ -1,5 +1,5 @@
 export const env = {
-  apiBaseUrl: __DEV__ ? 'http://localhost:4000/api/v1' : 'https://api.beaconbazaar.com/api/v1',
+  apiBaseUrl: __DEV__ ? 'http://192.168.1.93:4000/api/v1' : 'https://api.venividicoop.com/api/v1',
   googleMapsApiKey: '',
   firebaseConfig: {
     apiKey: '',
@@ -9,6 +9,6 @@ export const env = {
     appId: '',
   },
   beaconUUID: '00000000-0000-0000-0000-000000000000',
-  appName: 'Beacon Bazaar',
+  appName: 'VeniVidiCoop',
   appVersion: '1.0.0',
 } as const;

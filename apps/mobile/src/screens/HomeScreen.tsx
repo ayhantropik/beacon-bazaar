@@ -27,7 +27,7 @@ interface ProductItem {
   ratingAverage: number;
 }
 
-const CATEGORIES = ['Elektronik', 'Giyim', 'Gıda', 'Kitap', 'Spor', 'Kozmetik'];
+const CATEGORIES = ['Kadın', 'Erkek', 'Elektronik', 'Ev & Mobilya', 'Kozmetik', 'Spor & Outdoor', 'Süpermarket', 'Hediyelik'];
 
 export default function HomeScreen({ navigation }: Props) {
   const [search, setSearch] = useState('');

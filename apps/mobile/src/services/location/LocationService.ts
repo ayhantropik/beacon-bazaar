@@ -1,31 +1,15 @@
-import { Platform, PermissionsAndroid } from 'react-native';
+import * as ExpoLocation from 'expo-location';
 import type { GeoPoint } from '@beacon-bazaar/shared';
 
 type LocationCallback = (location: GeoPoint) => void;
 
 class LocationService {
-  private watchId: number | null = null;
+  private subscription: ExpoLocation.LocationSubscription | null = null;
   private listeners: LocationCallback[] = [];
 
   async requestPermissions(): Promise<boolean> {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: 'Konum İzni',
-            message: 'Yakınındaki mağazaları gösterebilmek için konum iznine ihtiyacımız var.',
-            buttonPositive: 'İzin Ver',
-            buttonNegative: 'İptal',
-          },
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch {
-        return false;
-      }
-    }
-    // iOS: Permissions handled by Info.plist + react-native-geolocation-service
-    return true;
+    const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
+    return status === 'granted';
   }
 
   async getCurrentLocation(): Promise<GeoPoint> {
@@ -34,44 +18,42 @@ class LocationService {
       return { latitude: 41.0082, longitude: 28.9784 }; // Default Istanbul
     }
 
-    return new Promise((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        () => {
-          // Fallback to Istanbul on error
-          resolve({ latitude: 41.0082, longitude: 28.9784 });
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
-      );
-    });
+    try {
+      const location = await ExpoLocation.getCurrentPositionAsync({
+        accuracy: ExpoLocation.Accuracy.High,
+      });
+      return {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      };
+    } catch {
+      return { latitude: 41.0082, longitude: 28.9784 };
+    }
   }
 
-  startWatching(callback: LocationCallback): void {
+  async startWatching(callback: LocationCallback): Promise<void> {
     this.listeners.push(callback);
-    if (this.watchId !== null) return;
+    if (this.subscription) return;
 
-    this.watchId = navigator.geolocation.watchPosition(
-      (position) => {
+    const hasPermission = await this.requestPermissions();
+    if (!hasPermission) return;
+
+    this.subscription = await ExpoLocation.watchPositionAsync(
+      { accuracy: ExpoLocation.Accuracy.High, distanceInterval: 10 },
+      (location) => {
         const loc: GeoPoint = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
         };
         this.listeners.forEach((cb) => cb(loc));
       },
-      (error) => console.warn('Location watch error:', error.message),
-      { enableHighAccuracy: true, distanceFilter: 10 },
     );
   }
 
   stopWatching(): void {
-    if (this.watchId !== null) {
-      navigator.geolocation.clearWatch(this.watchId);
-      this.watchId = null;
+    if (this.subscription) {
+      this.subscription.remove();
+      this.subscription = null;
     }
     this.listeners = [];
   }

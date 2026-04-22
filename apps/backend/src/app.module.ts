@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ProductModule } from './product/product.module';
@@ -14,10 +15,18 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { PaymentModule } from './payment/payment.module';
 import { FavoriteModule } from './favorite/favorite.module';
 import { HealthModule } from './health/health.module';
+import { GiftModule } from './gift/gift.module';
+import { SavedSearchModule } from './saved-search/saved-search.module';
+import { MessageModule } from './message/message.module';
+import { QaModule } from './qa/qa.module';
+import { AuctionModule } from './auction/auction.module';
+import { AdminModule } from './admin/admin.module';
+import { VenueModule } from './venue/venue.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
@@ -69,6 +78,13 @@ import { HealthModule } from './health/health.module';
     PaymentModule,
     FavoriteModule,
     HealthModule,
+    GiftModule,
+    SavedSearchModule,
+    MessageModule,
+    QaModule,
+    AuctionModule,
+    AdminModule,
+    VenueModule,
   ],
 })
 export class AppModule {}

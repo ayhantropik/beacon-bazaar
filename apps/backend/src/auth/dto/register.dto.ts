@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, IsIn } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -23,4 +23,9 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @ApiPropertyOptional({ example: 'customer', enum: ['customer', 'store_owner'] })
+  @IsOptional()
+  @IsIn(['customer', 'store_owner'], { message: 'Geçersiz rol' })
+  role?: 'customer' | 'store_owner';
 }

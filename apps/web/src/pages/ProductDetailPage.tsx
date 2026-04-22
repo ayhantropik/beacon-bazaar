@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
@@ -23,8 +23,27 @@ import AddIcon from '@mui/icons-material/Add';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SecurityIcon from '@mui/icons-material/Security';
 import CachedIcon from '@mui/icons-material/Cached';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import NavigationIcon from '@mui/icons-material/Navigation';
+import MapIcon from '@mui/icons-material/Map';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import Collapse from '@mui/material/Collapse';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableRow from '@mui/material/TableRow';
 import apiClient from '@services/api/client';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { addItem } from '@store/slices/cartSlice';
@@ -56,26 +75,43 @@ interface ProductDetail {
     logo: string;
     isVerified: boolean;
     ratingAverage: number;
+    latitude?: number;
+    longitude?: number;
+    address?: string;
   };
 }
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromGift = searchParams.get('from') === 'gift';
   const dispatch = useAppDispatch();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [snackOpen, setSnackOpen] = useState(false);
-  const isFavorite = useAppSelector(selectIsFavorite(slug || ''));
+  const [snackMessage, setSnackMessage] = useState('Ürün sepete eklendi!');
+  const [hasPriceAlert, setHasPriceAlert] = useState(false);
+  const [priceHistory, setPriceHistory] = useState<any[]>([]);
+  const [showPriceHistory, setShowPriceHistory] = useState(false);
+  const isFavorite = useAppSelector(selectIsFavorite(product?.id || ''));
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+  const [navAnchor, setNavAnchor] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     async function fetchProduct() {
       try {
         const res = await apiClient.get(`/products/${slug}`);
-        setProduct(res.data?.data || res.data);
+        const p = res.data?.data || res.data;
+        setProduct(p);
+
+        // Fiyat geçmişi
+        try {
+          const histRes = await apiClient.get(`/products/${p.id}/price-history`);
+          setPriceHistory(histRes.data?.data || []);
+        } catch { /* */ }
       } catch (err) {
         console.log('Ürün yüklenemedi', err);
       } finally {
@@ -84,6 +120,59 @@ export default function ProductDetailPage() {
     }
     fetchProduct();
   }, [slug]);
+
+  // Helper: localStorage fallback for price alerts
+  const getLocalAlerts = (): string[] => {
+    try { return JSON.parse(localStorage.getItem('price_alerts') || '[]'); } catch { return []; }
+  };
+  const setLocalAlert = (productId: string, add: boolean) => {
+    const alerts = getLocalAlerts();
+    const updated = add ? [...new Set([...alerts, productId])] : alerts.filter((id) => id !== productId);
+    localStorage.setItem('price_alerts', JSON.stringify(updated));
+  };
+
+  // Check price alert status
+  useEffect(() => {
+    if (!isAuthenticated || !product) return;
+    apiClient.get(`/products/${product.id}/price-alert`)
+      .then((res) => setHasPriceAlert(res.data?.data?.hasAlert || false))
+      .catch(() => {
+        // Fallback to localStorage
+        setHasPriceAlert(getLocalAlerts().includes(product.id));
+      });
+  }, [isAuthenticated, product]);
+
+  const handlePriceAlert = async () => {
+    if (!isAuthenticated) { navigate('/login'); return; }
+    if (!product) return;
+    try {
+      if (hasPriceAlert) {
+        await apiClient.delete(`/products/${product.id}/price-alert`);
+        setHasPriceAlert(false);
+        setLocalAlert(product.id, false);
+        setSnackMessage('Fiyat alarmı kaldırıldı');
+      } else {
+        const currentPrice = product.salePrice || product.price;
+        await apiClient.post(`/products/${product.id}/price-alert`, { targetPrice: currentPrice * 0.9 });
+        setHasPriceAlert(true);
+        setLocalAlert(product.id, true);
+        setSnackMessage('Fiyat düşünce bildirim alacaksınız!');
+      }
+      setSnackOpen(true);
+    } catch {
+      // Fallback to localStorage only
+      if (hasPriceAlert) {
+        setLocalAlert(product.id, false);
+        setHasPriceAlert(false);
+        setSnackMessage('Fiyat alarmı kaldırıldı');
+      } else {
+        setLocalAlert(product.id, true);
+        setHasPriceAlert(true);
+        setSnackMessage('Fiyat düşünce bildirim alacaksınız!');
+      }
+      setSnackOpen(true);
+    }
+  };
 
   if (loading) {
     return (
@@ -119,6 +208,26 @@ export default function ProductDetailPage() {
 
   return (
     <Box>
+      {fromGift && (
+        <Button
+          variant="contained"
+          startIcon={<ArrowBackIcon />}
+          endIcon={<CardGiftcardIcon />}
+          onClick={() => navigate(-1)}
+          sx={{
+            mb: 2,
+            bgcolor: '#fff',
+            color: 'primary.main',
+            fontWeight: 700,
+            borderRadius: 3,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            textTransform: 'none',
+            '&:hover': { bgcolor: '#f5f5f5' },
+          }}
+        >
+          Hediye Listesine Dön
+        </Button>
+      )}
       <Grid container spacing={4}>
         {/* Images */}
         <Grid item xs={12} md={6}>
@@ -191,6 +300,72 @@ export default function ProductDetailPage() {
             )}
           </Box>
 
+          <Box display="flex" gap={1} mb={1} flexWrap="wrap">
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={hasPriceAlert ? <NotificationsOffIcon /> : <NotificationsActiveIcon />}
+              color={hasPriceAlert ? 'error' : 'warning'}
+              onClick={handlePriceAlert}
+            >
+              {hasPriceAlert ? 'Fiyat Alarmını Kaldır' : 'Fiyatı Düşünce Haber Ver'}
+            </Button>
+            {priceHistory.length > 1 && (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<TimelineIcon />}
+                onClick={() => setShowPriceHistory(!showPriceHistory)}
+                color="info"
+              >
+                Fiyat Geçmişi ({priceHistory.length})
+              </Button>
+            )}
+          </Box>
+
+          {/* Price History */}
+          <Collapse in={showPriceHistory}>
+            <Box sx={{ mb: 2, p: 1.5, bgcolor: 'grey.50', borderRadius: 2 }}>
+              <Typography variant="subtitle2" fontWeight={600} mb={1}>Fiyat Geçmişi</Typography>
+              <Table size="small">
+                <TableBody>
+                  {priceHistory.map((h, i) => {
+                    const prev = i > 0 ? priceHistory[i - 1] : null;
+                    const currentP = Number(h.salePrice || h.price);
+                    const prevP = prev ? Number(prev.salePrice || prev.price) : currentP;
+                    const diff = currentP - prevP;
+                    return (
+                      <TableRow key={h.id || i}>
+                        <TableCell sx={{ py: 0.5, border: 0 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(h.createdAt).toLocaleDateString('tr-TR')}
+                          </Typography>
+                        </TableCell>
+                        <TableCell sx={{ py: 0.5, border: 0 }} align="right">
+                          <Typography variant="body2" fontWeight={600}>
+                            {Number(h.price).toLocaleString('tr-TR')} ₺
+                          </Typography>
+                        </TableCell>
+                        <TableCell sx={{ py: 0.5, border: 0 }} align="right">
+                          {h.salePrice && (
+                            <Chip label={`${Number(h.salePrice).toLocaleString('tr-TR')} ₺`} size="small" color="error" variant="outlined" />
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ py: 0.5, border: 0, width: 40 }} align="center">
+                          {i > 0 && diff !== 0 && (
+                            diff < 0
+                              ? <TrendingDownIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                              : <TrendingUpIcon sx={{ fontSize: 16, color: 'error.main' }} />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+
           {product.shortDescription && (
             <Typography variant="body1" color="text.secondary" mb={2}>
               {product.shortDescription}
@@ -237,6 +412,7 @@ export default function ProductDetailPage() {
                   price,
                   quantity,
                 }));
+                setSnackMessage('Ürün sepete eklendi!');
                 setSnackOpen(true);
               }}
             >
@@ -251,7 +427,20 @@ export default function ProductDetailPage() {
             >
               {isFavorite ? <FavoriteFilledIcon color="error" /> : <FavoriteBorderIcon />}
             </IconButton>
-            <IconButton sx={{ border: 1, borderColor: 'divider' }}>
+            <IconButton
+              sx={{ border: 1, borderColor: 'divider' }}
+              onClick={() => {
+                const url = window.location.href;
+                if (navigator.share) {
+                  navigator.share({ title: product?.name, text: product?.shortDescription || product?.name, url }).catch(() => {});
+                } else if (navigator.clipboard) {
+                  navigator.clipboard.writeText(url).then(() => {
+                    setSnackMessage('Link kopyalandı!');
+                    setSnackOpen(true);
+                  });
+                }
+              }}
+            >
               <ShareIcon />
             </IconButton>
           </Box>
@@ -280,34 +469,89 @@ export default function ProductDetailPage() {
 
           {/* Store Info */}
           {product.store && (
-            <Card
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                p: 2,
-                gap: 2,
-                cursor: 'pointer',
-                '&:hover': { boxShadow: 3 },
-              }}
-              onClick={() => navigate(`/store/${product.store!.slug}`)}
-            >
-              <Avatar src={product.store.logo} sx={{ width: 48, height: 48 }}>
-                <StorefrontIcon />
-              </Avatar>
-              <Box flex={1}>
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <Typography variant="subtitle2" fontWeight={600}>
-                    {product.store.name}
-                  </Typography>
-                  {product.store.isVerified && <VerifiedIcon color="primary" sx={{ fontSize: 16 }} />}
+            <Card sx={{ p: 2, '&:hover': { boxShadow: 3 } }}>
+              <Box
+                display="flex"
+                alignItems="center"
+                gap={2}
+                sx={{ cursor: 'pointer' }}
+                onClick={() => navigate(`/store/${product.store!.slug}`)}
+              >
+                <Avatar src={product.store.logo} sx={{ width: 48, height: 48 }}>
+                  <StorefrontIcon />
+                </Avatar>
+                <Box flex={1}>
+                  <Box display="flex" alignItems="center" gap={0.5}>
+                    <Typography variant="subtitle2" fontWeight={600}>
+                      {product.store.name}
+                    </Typography>
+                    {product.store.isVerified && <VerifiedIcon color="primary" sx={{ fontSize: 16 }} />}
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={0.5}>
+                    <Rating value={product.store.ratingAverage} precision={0.5} size="small" readOnly />
+                  </Box>
+                  {product.store.address && typeof product.store.address === 'string' && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.3, mt: 0.3 }}>
+                      <LocationOnIcon sx={{ fontSize: 14 }} /> {product.store.address}
+                    </Typography>
+                  )}
                 </Box>
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <Rating value={product.store.ratingAverage} precision={0.5} size="small" readOnly />
-                </Box>
+                <Button variant="outlined" size="small" onClick={(e) => { e.stopPropagation(); navigate(`/store/${product.store!.slug}`); }}>
+                  Mağazaya Git
+                </Button>
               </Box>
-              <Button variant="outlined" size="small">
-                Mağazaya Git
-              </Button>
+
+              {/* Konum Butonları */}
+              {product.store.latitude && product.store.longitude && (
+                <Box display="flex" gap={1} mt={1.5} flexWrap="wrap">
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<MapIcon />}
+                    sx={{ textTransform: 'none', borderRadius: 2 }}
+                    onClick={() => navigate(`/map?storeId=${product.store!.id}&productId=${product.id}&storeName=${encodeURIComponent(product.store!.name)}&lat=${product.store!.latitude}&lng=${product.store!.longitude}`)}
+                  >
+                    Haritada Göster
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<NavigationIcon />}
+                    sx={{ textTransform: 'none', borderRadius: 2 }}
+                    onClick={(e) => setNavAnchor(e.currentTarget)}
+                  >
+                    Yol Tarifi Al
+                  </Button>
+                  <Menu
+                    anchorEl={navAnchor}
+                    open={Boolean(navAnchor)}
+                    onClose={() => setNavAnchor(null)}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                  >
+                    <MenuItem onClick={() => {
+                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${product.store!.latitude},${product.store!.longitude}`, '_blank');
+                      setNavAnchor(null);
+                    }}>
+                      <ListItemIcon><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Google_Maps_icon_%282020%29.svg/24px-Google_Maps_icon_%282020%29.svg.png" alt="Google Maps" width={20} /></ListItemIcon>
+                      <ListItemText>Google Maps</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={() => {
+                      window.open(`https://yandex.com.tr/harita/?rtext=~${product.store!.latitude},${product.store!.longitude}&rtt=auto`, '_blank');
+                      setNavAnchor(null);
+                    }}>
+                      <ListItemIcon><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Yandex_Navigator_icon.svg/24px-Yandex_Navigator_icon.svg.png" alt="Yandex" width={20} /></ListItemIcon>
+                      <ListItemText>Yandex Navigasyon</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={() => {
+                      window.open(`https://maps.apple.com/?daddr=${product.store!.latitude},${product.store!.longitude}`, '_blank');
+                      setNavAnchor(null);
+                    }}>
+                      <ListItemIcon><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Apple_Maps_%28iOS%29.svg/24px-Apple_Maps_%28iOS%29.svg.png" alt="Apple Maps" width={20} /></ListItemIcon>
+                      <ListItemText>Apple Haritalar</ListItemText>
+                    </MenuItem>
+                  </Menu>
+                </Box>
+              )}
             </Card>
           )}
         </Grid>
@@ -359,7 +603,7 @@ export default function ProductDetailPage() {
 
       <Snackbar open={snackOpen} autoHideDuration={3000} onClose={() => setSnackOpen(false)}>
         <Alert onClose={() => setSnackOpen(false)} severity="success" variant="filled">
-          Ürün sepete eklendi!
+          {snackMessage}
         </Alert>
       </Snackbar>
     </Box>

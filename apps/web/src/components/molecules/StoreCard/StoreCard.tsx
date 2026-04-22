@@ -23,20 +23,27 @@ export default function StoreCard({ store, distance, onClick }: StoreCardProps) 
       sx={{
         display: 'flex',
         cursor: onClick ? 'pointer' : 'default',
-        transition: 'transform 0.2s, box-shadow 0.2s',
+        overflow: 'hidden',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
         '&:hover': {
           transform: 'translateY(-2px)',
-          boxShadow: 3,
+          boxShadow: '0 8px 25px rgba(0,0,0,0.12)',
+        },
+        '&:hover .store-card-img': {
+          transform: 'scale(1.08)',
         },
       }}
       onClick={() => onClick?.(store)}
     >
-      <CardMedia
-        component="img"
-        sx={{ width: 140, objectFit: 'cover' }}
-        image={store.coverImage}
-        alt={store.name}
-      />
+      <Box sx={{ width: 140, flexShrink: 0, overflow: 'hidden' }}>
+        <CardMedia
+          className="store-card-img"
+          component="img"
+          sx={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+          image={store.coverImage}
+          alt={store.name}
+        />
+      </Box>
       <CardContent sx={{ flex: 1, py: 1.5 }}>
         <Box display="flex" alignItems="center" gap={1} mb={0.5}>
           <Avatar src={store.logo} sx={{ width: 32, height: 32 }}>

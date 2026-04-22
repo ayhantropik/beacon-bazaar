@@ -20,14 +20,27 @@ export const storeService = {
       .get<ApiResponse<Store[]>>('/stores/nearby', { params })
       .then((res) => res.data),
 
-  follow: (storeId: string) =>
+  toggleFollow: (storeId: string) =>
     apiClient.post(`/stores/${storeId}/follow`).then((res) => res.data),
 
-  unfollow: (storeId: string) =>
-    apiClient.delete(`/stores/${storeId}/follow`).then((res) => res.data),
+  checkFollow: (storeId: string) =>
+    apiClient.get(`/stores/${storeId}/follow/check`).then((res) => res.data),
 
   getReviews: (storeId: string, page = 1) =>
     apiClient
       .get(`/stores/${storeId}/reviews`, { params: { page } })
       .then((res) => res.data),
+
+  canReview: (storeId: string) =>
+    apiClient.get(`/stores/${storeId}/reviews/can-review`).then((res) => res.data),
+
+  createReview: (storeId: string, data: {
+    descriptionAccuracy: number; returnEase: number; imageMatch: number;
+    deliveryConsistency: number; qaSpeed: number; problemResolution: number;
+    comment?: string; orderId?: string;
+  }) =>
+    apiClient.post(`/stores/${storeId}/reviews`, data).then((res) => res.data),
+
+  deleteReview: (storeId: string, reviewId: string) =>
+    apiClient.delete(`/stores/${storeId}/reviews/${reviewId}`).then((res) => res.data),
 };

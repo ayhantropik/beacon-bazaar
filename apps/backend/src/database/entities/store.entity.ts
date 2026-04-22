@@ -31,6 +31,9 @@ export class StoreEntity {
   @Column({ type: 'text' })
   description: string;
 
+  @Column({ default: 'shopping', nullable: true, select: false })
+  storeType: 'shopping' | 'automotive' | 'realestate' | 'service' | 'food' | 'producer';
+
   @Column({ nullable: true })
   logo: string;
 

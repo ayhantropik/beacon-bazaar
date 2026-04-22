@@ -10,7 +10,7 @@ export class HealthController {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      service: 'beacon-bazaar-api',
+      service: 'venividicoop-api',
       version: '1.0.0',
     };
   }

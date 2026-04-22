@@ -23,5 +23,5 @@
       "@database/*": ["src/database/*"]
     }
   },
-  "exclude": ["src/scripts", "dist"]
+  "exclude": ["dist", "scripts", "node_modules"]
 }

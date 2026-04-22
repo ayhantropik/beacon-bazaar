@@ -46,8 +46,13 @@ apps/mobile/android/app/build/
 *.apk
 *.ipa
 
-# Analysis
+# Analysis & Screenshots
 analysis/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
 
 # Playwright
 .playwright-mcp/
@@ -57,3 +62,10 @@ analysis/
 .turbo
 supabase/
 *.env.supabase
+
+# Seed & utility scripts output
+*.seed.log
+
+# Temporary files
+*.tmp
+*.bak

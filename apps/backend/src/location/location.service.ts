@@ -24,7 +24,7 @@ export class LocationService {
     try {
       const url = `${this.nominatimUrl}/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&countrycodes=tr`;
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'BeaconBazaar/1.0' },
+        headers: { 'User-Agent': 'VeniVidiCoop/1.0' },
       });
       const results = await response.json();
 
@@ -43,13 +43,41 @@ export class LocationService {
     }
   }
 
-  async reverseGeocode(latitude: number, longitude: number): Promise<{ success: boolean; data: GeoResult }> {
+  async reverseGeocode(latitude: number, longitude: number): Promise<{ success: boolean; data: any }> {
     try {
-      const url = `${this.nominatimUrl}/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`;
+      const url = `${this.nominatimUrl}/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1&accept-language=tr`;
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'BeaconBazaar/1.0' },
+        headers: { 'User-Agent': 'VeniVidiCoop/1.0' },
       });
-      const result = await response.json();
+      const result: any = await response.json();
+      const addr = result.address || {};
+
+      // Türkiye il/ilçe eşleştirmesi için birden fazla alanı kontrol et
+      const city =
+        addr.province ||
+        addr.state ||
+        addr.city ||
+        addr.town ||
+        addr.county ||
+        '';
+      const district =
+        addr.city_district ||
+        addr.district ||
+        addr.suburb ||
+        addr.county ||
+        addr.municipality ||
+        addr.town ||
+        '';
+      const neighbourhood = addr.neighbourhood || addr.quarter || '';
+      const road = addr.road || addr.pedestrian || addr.footway || '';
+      const houseNumber = addr.house_number || '';
+      const postcode = addr.postcode || '';
+
+      // Street birleştirme: "Mahalle, Cadde/Sokak No:X"
+      const streetParts: string[] = [];
+      if (neighbourhood) streetParts.push(neighbourhood + ' Mah.');
+      if (road) streetParts.push(houseNumber ? `${road} No:${houseNumber}` : road);
+      const street = streetParts.join(', ');
 
       return {
         success: true,
@@ -58,6 +86,12 @@ export class LocationService {
           longitude,
           address: result.display_name || '',
           displayName: result.display_name || '',
+          city,
+          district,
+          neighbourhood,
+          street,
+          postalCode: postcode,
+          raw: addr,
           type: result.type || 'unknown',
         },
       };
@@ -65,7 +99,7 @@ export class LocationService {
       this.logger.warn(`Reverse geocode failed: ${err}`);
       return {
         success: true,
-        data: { latitude, longitude, address: '', displayName: '', type: 'unknown' },
+        data: { latitude, longitude, address: '', displayName: '', city: '', district: '', street: '', type: 'unknown' },
       };
     }
   }
@@ -95,7 +129,7 @@ export class LocationService {
       const viewbox = this.getBoundingBox(latitude, longitude, radiusKm);
       const url = `${this.nominatimUrl}/search?q=shop+OR+store+OR+market&format=json&addressdetails=1&limit=20&viewbox=${viewbox}&bounded=1&countrycodes=tr`;
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'BeaconBazaar/1.0' },
+        headers: { 'User-Agent': 'VeniVidiCoop/1.0' },
       });
       const results = await response.json();
 

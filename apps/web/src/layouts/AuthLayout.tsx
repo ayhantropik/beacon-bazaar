@@ -5,10 +5,10 @@ import Typography from '@mui/material/Typography';
 import { useAppSelector } from '@store/hooks';
 
 export default function AuthLayout() {
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={user?.role === 'store_owner' ? '/dashboard' : '/'} replace />;
   }
 
   return (
@@ -31,7 +31,7 @@ export default function AuthLayout() {
           color="primary"
           mb={3}
         >
-          Beacon Bazaar
+          VeniVidiCoop
         </Typography>
         <Outlet />
       </Paper>

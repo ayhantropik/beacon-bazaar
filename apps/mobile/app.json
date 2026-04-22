@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "VeniVidiCoop",
+    "slug": "venividicoop",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.venividicoop.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Yakınınızdaki mağazaları görmek için konumunuza ihtiyacımız var.",
+        "NSLocationAlwaysUsageDescription": "Konum bazlı bildirimler için konumunuza ihtiyacımız var."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1a6b52"
+      },
+      "package": "com.venividicoop.app",
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+    },
+    "scheme": "venividicoop"
+  }
+}

@@ -59,4 +59,5 @@ export interface RegisterRequest {
   name: string;
   surname: string;
   phone?: string;
+  role?: 'customer' | 'store_owner';
 }

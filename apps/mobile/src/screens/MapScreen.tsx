@@ -16,7 +16,7 @@ interface NearbyPlace {
 
 export default function MapScreen() {
   const dispatch = useAppDispatch();
-  const { nearbyStores, loading } = useAppSelector((s) => s.store);
+  const { nearbyStores, isLoading: loading } = useAppSelector((s) => s.store);
   const [searchQuery, setSearchQuery] = useState('');
   const [places, setPlaces] = useState<NearbyPlace[]>([]);
   const [loadingPlaces, setLoadingPlaces] = useState(false);

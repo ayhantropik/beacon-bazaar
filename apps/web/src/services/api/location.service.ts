@@ -1,41 +1,47 @@
-import type { ApiResponse, GeoPoint } from '@beacon-bazaar/shared';
 import apiClient from './client';
 
 interface LocationSearchResult {
-  id: string;
-  name: string;
+  latitude: number;
+  longitude: number;
+  displayName: string;
   address: string;
-  location: GeoPoint;
-  type: 'city' | 'district' | 'neighborhood' | 'street';
+  type: string;
+  city?: string;
+  district?: string;
+  neighbourhood?: string;
+  street?: string;
+  postalCode?: string;
+  raw?: Record<string, string>;
 }
 
 interface RouteResult {
-  distance: number; // km
-  duration: number; // minutes
-  polyline: GeoPoint[];
+  distance: number;
+  walkingDuration: number;
+  drivingDuration: number;
+  polyline: { latitude: number; longitude: number }[];
 }
 
 export const locationService = {
   search: (query: string) =>
     apiClient
-      .get<ApiResponse<LocationSearchResult[]>>('/locations/search', { params: { query } })
+      .get<{ success: boolean; data: LocationSearchResult[] }>('/locations/search', { params: { query } })
       .then((res) => res.data),
 
   reverseGeocode: (latitude: number, longitude: number) =>
     apiClient
-      .get<ApiResponse<LocationSearchResult>>('/locations/reverse', {
+      .get<{ success: boolean; data: LocationSearchResult }>('/locations/reverse', {
         params: { latitude, longitude },
       })
       .then((res) => res.data),
 
-  getRoute: (origin: GeoPoint, destination: GeoPoint) =>
+  getRoute: (origin: { latitude: number; longitude: number }, destination: { latitude: number; longitude: number }) =>
     apiClient
-      .post<ApiResponse<RouteResult>>('/locations/route', { origin, destination })
+      .post<{ success: boolean; data: RouteResult }>('/locations/route', { origin, destination })
       .then((res) => res.data),
 
   getNearbyPlaces: (latitude: number, longitude: number, radius?: number) =>
     apiClient
-      .get<ApiResponse<LocationSearchResult[]>>('/locations/nearby', {
+      .get<{ success: boolean; data: LocationSearchResult[] }>('/locations/nearby', {
         params: { latitude, longitude, radius },
       })
       .then((res) => res.data),

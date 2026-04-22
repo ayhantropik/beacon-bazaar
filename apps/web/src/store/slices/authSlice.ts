@@ -1,6 +1,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { User, AuthTokens, LoginRequest, RegisterRequest } from '@beacon-bazaar/shared';
+import { AxiosError } from 'axios';
 import { authService } from '@services/api/auth.service';
+
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof AxiosError && error.response?.data?.message) {
+    return error.response.data.message;
+  }
+  if (error instanceof Error) return error.message;
+  return fallback;
+}
 
 interface AuthState {
   user: User | null;
@@ -18,6 +27,27 @@ const initialState: AuthState = {
   error: null,
 };
 
+function saveTokensToStorage(tokens: AuthTokens) {
+  localStorage.setItem('access_token', tokens.accessToken);
+  localStorage.setItem('refresh_token', tokens.refreshToken);
+}
+
+export const initAuth = createAsyncThunk(
+  'auth/init',
+  async (_, { rejectWithValue }) => {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) return rejectWithValue('No token');
+    try {
+      const response = await authService.getProfile();
+      return response.data;
+    } catch {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      return rejectWithValue('Invalid token');
+    }
+  },
+);
+
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials: LoginRequest, { rejectWithValue }) => {
@@ -25,8 +55,7 @@ export const login = createAsyncThunk(
       const response = await authService.login(credentials);
       return response.data;
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Giriş başarısız';
-      return rejectWithValue(message);
+      return rejectWithValue(extractErrorMessage(error, 'Giriş başarısız'));
     }
   },
 );
@@ -38,14 +67,19 @@ export const register = createAsyncThunk(
       const response = await authService.register(data);
       return response.data;
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Kayıt başarısız';
-      return rejectWithValue(message);
+      return rejectWithValue(extractErrorMessage(error, 'Kayıt başarısız'));
     }
   },
 );
 
 export const logout = createAsyncThunk('auth/logout', async () => {
-  await authService.logout();
+  try {
+    await authService.logout();
+  } catch {
+    // Clear local state even if API call fails
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  }
 });
 
 const authSlice = createSlice({
@@ -71,6 +105,7 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.tokens = action.payload.tokens;
         state.isAuthenticated = true;
+        saveTokensToStorage(action.payload.tokens);
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
@@ -83,8 +118,12 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
-        state.tokens = action.payload.tokens;
-        state.isAuthenticated = true;
+        // Token yoksa (e-posta onayı gerekiyorsa) oturum açma
+        if (action.payload.tokens) {
+          state.tokens = action.payload.tokens;
+          state.isAuthenticated = true;
+          saveTokensToStorage(action.payload.tokens);
+        }
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
@@ -93,6 +132,18 @@ const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.tokens = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(initAuth.fulfilled, (state, action) => {
+        state.user = action.payload as User;
+        state.isAuthenticated = true;
+        state.isLoading = false;
+      })
+      .addCase(initAuth.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(initAuth.rejected, (state) => {
+        state.isLoading = false;
         state.isAuthenticated = false;
       });
   },

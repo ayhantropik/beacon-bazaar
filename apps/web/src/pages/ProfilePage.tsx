@@ -24,6 +24,10 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
 import PersonIcon from '@mui/icons-material/Person';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import GavelIcon from '@mui/icons-material/Gavel';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import Chip from '@mui/material/Chip';
+import Pagination from '@mui/material/Pagination';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -63,6 +67,21 @@ export default function ProfilePage() {
   const [favorites, setFavorites] = useState<any[]>([]);
   const [favLoading, setFavLoading] = useState(false);
   const [snackOpen, setSnackOpen] = useState(false);
+  const [myBids, setMyBids] = useState<any[]>([]);
+  const [bidsLoading, setBidsLoading] = useState(false);
+  const [bidsPage, setBidsPage] = useState(1);
+  const [bidsTotalPages, setBidsTotalPages] = useState(1);
+  const [followedStores, setFollowedStores] = useState<any[]>([]);
+  const [followsLoading, setFollowsLoading] = useState(false);
+
+  useEffect(() => {
+    if (tab !== 4 || !isAuthenticated) return;
+    setBidsLoading(true);
+    apiClient.get('/auction/my-bids', { params: { page: bidsPage } }).then((res) => {
+      setMyBids(res.data?.data || []);
+      setBidsTotalPages(res.data?.pagination?.totalPages || 1);
+    }).catch(() => {}).finally(() => setBidsLoading(false));
+  }, [tab, bidsPage, isAuthenticated]);
 
   useEffect(() => {
     if (tab !== 2 || !isAuthenticated) return;
@@ -70,6 +89,14 @@ export default function ProfilePage() {
     apiClient.get('/favorites').then((res) => {
       setFavorites(res.data?.data || res.data || []);
     }).catch(() => {}).finally(() => setFavLoading(false));
+  }, [tab, isAuthenticated]);
+
+  useEffect(() => {
+    if (tab !== 5 || !isAuthenticated) return;
+    setFollowsLoading(true);
+    apiClient.get('/stores/my-follows').then((res) => {
+      setFollowedStores(res.data?.data || []);
+    }).catch(() => {}).finally(() => setFollowsLoading(false));
   }, [tab, isAuthenticated]);
 
   const profileFormik = useFormik({
@@ -116,6 +143,18 @@ export default function ProfilePage() {
     await dispatch(logout());
     navigate('/');
   };
+
+  const { isLoading: authLoading } = useAppSelector((s) => s.auth);
+
+  if (authLoading) {
+    return (
+      <Box textAlign="center" py={8}>
+        <Skeleton variant="circular" width={80} height={80} sx={{ mx: 'auto', mb: 2 }} />
+        <Skeleton variant="text" width={200} sx={{ mx: 'auto' }} />
+        <Skeleton variant="text" width={160} sx={{ mx: 'auto' }} />
+      </Box>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -166,6 +205,14 @@ export default function ProfilePage() {
             <ListItemButton selected={tab === 2} onClick={() => setTab(2)}>
               <ListItemIcon><FavoriteIcon /></ListItemIcon>
               <ListItemText primary="Favorilerim" />
+            </ListItemButton>
+            <ListItemButton selected={tab === 5} onClick={() => setTab(5)}>
+              <ListItemIcon><StorefrontIcon /></ListItemIcon>
+              <ListItemText primary="Takip Ettiğim Mağazalar" />
+            </ListItemButton>
+            <ListItemButton selected={tab === 4} onClick={() => setTab(4)}>
+              <ListItemIcon><GavelIcon /></ListItemIcon>
+              <ListItemText primary="Açık Artırma Tekliflerim" />
             </ListItemButton>
             <ListItemButton selected={tab === 3} onClick={() => setTab(3)}>
               <ListItemIcon><SettingsIcon /></ListItemIcon>
@@ -316,13 +363,14 @@ export default function ProfilePage() {
                         }}
                         onClick={() => navigate(`/product/${product.slug}`)}
                       >
-                        <CardMedia
-                          component="img"
-                          height="160"
-                          image={product.thumbnail || 'https://via.placeholder.com/300x160'}
-                          alt={product.name}
-                          sx={{ objectFit: 'cover' }}
-                        />
+                        <Box sx={{ position: 'relative', paddingTop: '100%', overflow: 'hidden' }}>
+                          <CardMedia
+                            component="img"
+                            image={product.thumbnail || 'https://via.placeholder.com/300x300'}
+                            alt={product.name}
+                            sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </Box>
                         <CardContent sx={{ flexGrow: 1, pb: 0 }}>
                           <Typography variant="subtitle2" fontWeight={600} noWrap>
                             {product.name}
@@ -382,6 +430,171 @@ export default function ProfilePage() {
                     </Grid>
                   );
                 })}
+              </Grid>
+            )}
+          </Box>
+        )}
+
+        {/* Tab 4: Auction Bids */}
+        {tab === 4 && (
+          <Box>
+            <Typography variant="h6" fontWeight={600} mb={3}>Açık Artırma Tekliflerim</Typography>
+            {bidsLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} variant="rounded" height={100} sx={{ mb: 2 }} />
+              ))
+            ) : myBids.length === 0 ? (
+              <Card sx={{ p: 3 }}>
+                <Box textAlign="center" py={4}>
+                  <GavelIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+                  <Typography color="text.secondary">Henüz açık artırma teklifi vermediniz</Typography>
+                  <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate('/')}>
+                    Açık Artırmaları Keşfet
+                  </Button>
+                </Box>
+              </Card>
+            ) : (
+              <>
+                {myBids.map((bid) => {
+                  const item = bid.auctionItem;
+                  const product = item?.product;
+                  const statusMap: Record<string, { label: string; color: 'success' | 'warning' | 'error' | 'default' }> = {
+                    active: { label: 'Aktif', color: 'success' },
+                    won: { label: 'Kazandınız!', color: 'success' },
+                    outbid: { label: 'Geçildi', color: 'warning' },
+                    cancelled: { label: 'İptal', color: 'error' },
+                  };
+                  const st = statusMap[bid.status] || { label: bid.status, color: 'default' as const };
+                  return (
+                    <Card key={bid.id} sx={{ mb: 2, p: 2 }}>
+                      <Box display="flex" gap={2} alignItems="center">
+                        {product?.thumbnail && (
+                          <Box
+                            component="img"
+                            src={product.thumbnail}
+                            alt={product.name}
+                            sx={{ width: 80, height: 80, borderRadius: 1, objectFit: 'cover', cursor: 'pointer' }}
+                            onClick={() => product?.slug && navigate(`/product/${product.slug}`)}
+                          />
+                        )}
+                        <Box flex={1}>
+                          <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                            <Typography variant="subtitle1" fontWeight={600}>
+                              {product?.name || 'Ürün'}
+                            </Typography>
+                            <Chip label={st.label} color={st.color} size="small" />
+                          </Box>
+                          <Typography variant="body2" color="text.secondary">
+                            Kategori: {item?.category || '-'}
+                          </Typography>
+                          <Box display="flex" gap={3} mt={1}>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Teklifiniz</Typography>
+                              <Typography variant="subtitle2" color="primary" fontWeight={700}>
+                                {Number(bid.bidPrice).toLocaleString('tr-TR')} ₺
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Miktar</Typography>
+                              <Typography variant="subtitle2">{bid.bidQuantity} adet</Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">En Yüksek Teklif</Typography>
+                              <Typography variant="subtitle2" fontWeight={600}>
+                                {item?.currentHighestBid ? `${Number(item.currentHighestBid).toLocaleString('tr-TR')} ₺` : '-'}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.secondary">Tarih</Typography>
+                              <Typography variant="subtitle2">
+                                {new Date(bid.createdAt).toLocaleDateString('tr-TR')}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Card>
+                  );
+                })}
+                {bidsTotalPages > 1 && (
+                  <Box display="flex" justifyContent="center" mt={3}>
+                    <Pagination
+                      count={bidsTotalPages}
+                      page={bidsPage}
+                      onChange={(_, p) => setBidsPage(p)}
+                      color="primary"
+                    />
+                  </Box>
+                )}
+              </>
+            )}
+          </Box>
+        )}
+
+        {/* Tab 5: Followed Stores */}
+        {tab === 5 && (
+          <Box>
+            <Typography variant="h6" fontWeight={600} mb={3}>Takip Ettiğim Mağazalar</Typography>
+            {followsLoading ? (
+              <Grid container spacing={2}>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Grid item xs={6} sm={4} md={3} key={i}>
+                    <Skeleton variant="rounded" height={180} />
+                  </Grid>
+                ))}
+              </Grid>
+            ) : followedStores.length === 0 ? (
+              <Card sx={{ p: 3 }}>
+                <Box textAlign="center" py={4}>
+                  <StorefrontIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+                  <Typography color="text.secondary">Henüz takip ettiğiniz mağaza yok</Typography>
+                  <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate('/')}>
+                    Mağazaları Keşfet
+                  </Button>
+                </Box>
+              </Card>
+            ) : (
+              <Grid container spacing={2}>
+                {followedStores.map((store) => (
+                  <Grid item xs={6} sm={4} md={3} key={store.id}>
+                    <Card
+                      sx={{
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+                      }}
+                      onClick={() => navigate(`/store/${store.slug}`)}
+                    >
+                      <Box sx={{ position: 'relative', paddingTop: '60%', overflow: 'hidden', bgcolor: 'grey.100' }}>
+                        <CardMedia
+                          component="img"
+                          image={store.logo || store.coverImage || 'https://via.placeholder.com/300x180'}
+                          alt={store.name}
+                          sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </Box>
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Typography variant="subtitle2" fontWeight={600} noWrap>
+                          {store.name}
+                        </Typography>
+                        {store.categories?.length > 0 && (
+                          <Typography variant="caption" color="text.secondary" noWrap>
+                            {store.categories.join(', ')}
+                          </Typography>
+                        )}
+                        <Box display="flex" alignItems="center" gap={0.5} mt={0.5}>
+                          <Rating value={store.ratingAverage || 0} precision={0.5} size="small" readOnly />
+                          <Typography variant="caption" color="text.secondary">
+                            ({store.ratingCount || 0})
+                          </Typography>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
               </Grid>
             )}
           </Box>

@@ -1,10 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import MuiButton from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import TextField from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ContactsIcon from '@mui/icons-material/Contacts';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import Tooltip from '@mui/material/Tooltip';
 import { authService } from '@services/api/auth.service';
+import { useAppDispatch } from '@store/hooks';
+import { setTokens, initAuth } from '@store/slices/authSlice';
 
 const GOOGLE_SVG = (
   <svg width="20" height="20" viewBox="0 0 24 24">
@@ -35,91 +50,174 @@ interface SocialLoginButtonsProps {
 export default function SocialLoginButtons({ mode, position = 'bottom' }: SocialLoginButtonsProps) {
   const label = mode === 'login' ? 'ile giriş yap' : 'ile kayıt ol';
   const navigate = useNavigate();
-  const [, setLoading] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState('');
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const handleSocialLogin = async (provider: string) => {
-    setLoading(provider);
+  const [contactPickerSupported, setContactPickerSupported] = useState(false);
+
+  useEffect(() => {
+    // Check if Contact Picker API is available (mobile browsers)
+    setContactPickerSupported('contacts' in navigator && 'ContactsManager' in window);
+  }, []);
+
+  const pickFromContacts = async () => {
     try {
-      // Demo: Simulate OAuth flow by using a mock email
-      // In production: Replace with real OAuth popup (Google Identity Services, Apple Sign-In, Facebook SDK)
-      const demoEmail = `${provider}.user.${Date.now()}@demo.beaconbazaar.com`;
-      const response = await authService.socialLogin(provider, {
-        email: demoEmail,
-        name: provider.charAt(0).toUpperCase() + provider.slice(1),
-        surname: 'User',
+      const nav = navigator as any;
+      if (nav.contacts) {
+        const contacts = await nav.contacts.select(['name', 'email', 'tel'], { multiple: false });
+        if (contacts?.length > 0) {
+          const contact = contacts[0];
+          if (contact.name?.length > 0) setName(contact.name[0]);
+          if (contact.email?.length > 0) setEmail(contact.email[0]);
+        }
+      }
+    } catch {
+      // User cancelled or API not available
+    }
+  };
+
+  const openProviderDialog = (provider: string) => {
+    setSelectedProvider(provider);
+    setError('');
+
+    // Try to pre-fill from browser's saved credentials / autofill data
+    // Use simulated provider profile data based on provider type
+    const savedName = localStorage.getItem('user_display_name') || '';
+    const savedEmail = localStorage.getItem('user_email') || '';
+
+    setName(savedName);
+    setEmail(savedEmail);
+    setDialogOpen(true);
+
+    // Try Credential Management API for email
+    if ('credentials' in navigator && (window as any).PasswordCredential) {
+      navigator.credentials.get({
+        password: true,
+        mediation: 'optional',
+      } as any).then((cred: any) => {
+        if (cred) {
+          if (cred.id && cred.id.includes('@')) setEmail(cred.id);
+          if (cred.name) setName(cred.name);
+        }
+      }).catch(() => {});
+    }
+  };
+
+  const handleSocialSubmit = async () => {
+    if (!email.trim() || !email.includes('@')) {
+      setError('Geçerli bir e-posta adresi girin');
+      return;
+    }
+    if (mode === 'register' && !name.trim()) {
+      setError('Ad soyad girin');
+      return;
+    }
+
+    setLoading(selectedProvider);
+    setError('');
+    try {
+      const nameParts = name.trim().split(' ');
+      const response = await authService.socialLogin(selectedProvider, {
+        email: email.trim(),
+        name: nameParts[0] || selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1),
+        surname: nameParts.slice(1).join(' ') || 'User',
       });
 
       if (response.data?.tokens) {
-        localStorage.setItem('access_token', response.data.tokens.accessToken);
-        localStorage.setItem('refresh_token', response.data.tokens.refreshToken);
-        navigate('/');
-        window.location.reload();
+        const { tokens, user: userData } = response.data;
+        // Save tokens to localStorage and Redux
+        localStorage.setItem('access_token', tokens.accessToken);
+        localStorage.setItem('refresh_token', tokens.refreshToken);
+        dispatch(setTokens(tokens));
+        // Load full user profile into Redux
+        dispatch(initAuth());
+
+        setDialogOpen(false);
+
+        // Save credentials for future auto-fill
+        localStorage.setItem('user_email', email.trim());
+        localStorage.setItem('user_display_name', name.trim());
+
+        const providerName = selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1);
+        if (mode === 'register') {
+          setSuccessMessage(`${providerName} ile kayıt başarılı! Hoş geldiniz, ${userData?.name || name}!`);
+        } else {
+          setSuccessMessage(`${providerName} ile giriş başarılı!`);
+        }
+        setSuccessOpen(true);
+
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
       }
-    } catch (err) {
-      console.error(`${provider} login failed:`, err);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Bir hata oluştu. Lütfen tekrar deneyin.';
+      setError(msg);
     } finally {
       setLoading(null);
     }
   };
 
+  const providerLabel = selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1);
+
+  const buttons = (
+    <Box display="flex" flexDirection="column" gap={1.5}>
+      <MuiButton
+        variant="outlined"
+        fullWidth
+        startIcon={GOOGLE_SVG}
+        onClick={() => openProviderDialog('google')}
+        disabled={loading !== null}
+        sx={{
+          borderColor: '#dadce0', color: '#3c4043', textTransform: 'none', fontWeight: 500, py: 1.2,
+          '&:hover': { borderColor: '#d2e3fc', backgroundColor: '#f8f9fa' },
+        }}
+      >
+        Google {label}
+      </MuiButton>
+
+      <MuiButton
+        variant="outlined"
+        fullWidth
+        startIcon={APPLE_SVG}
+        onClick={() => openProviderDialog('apple')}
+        disabled={loading !== null}
+        sx={{
+          borderColor: '#000', color: '#000', textTransform: 'none', fontWeight: 500, py: 1.2,
+          '&:hover': { backgroundColor: '#f5f5f5', borderColor: '#000' },
+        }}
+      >
+        Apple {label}
+      </MuiButton>
+
+      <MuiButton
+        variant="outlined"
+        fullWidth
+        startIcon={FACEBOOK_SVG}
+        onClick={() => openProviderDialog('facebook')}
+        disabled={loading !== null}
+        sx={{
+          borderColor: '#1877F2', color: '#1877F2', textTransform: 'none', fontWeight: 500, py: 1.2,
+          '&:hover': { backgroundColor: '#f0f2f5', borderColor: '#1877F2' },
+        }}
+      >
+        Facebook {label}
+      </MuiButton>
+    </Box>
+  );
+
   const dividerText = position === 'top' ? 'veya e-posta ile' : 'veya';
 
   return (
     <Box>
-      {position === 'top' && (
-        <Box display="flex" flexDirection="column" gap={1.5} mb={1}>
-          <MuiButton
-            variant="outlined"
-            fullWidth
-            startIcon={GOOGLE_SVG}
-            onClick={() => handleSocialLogin('google')}
-            sx={{
-              borderColor: '#dadce0',
-              color: '#3c4043',
-              textTransform: 'none',
-              fontWeight: 500,
-              py: 1.2,
-              '&:hover': { borderColor: '#d2e3fc', backgroundColor: '#f8f9fa' },
-            }}
-          >
-            Google {label}
-          </MuiButton>
-
-          <MuiButton
-            variant="outlined"
-            fullWidth
-            startIcon={APPLE_SVG}
-            onClick={() => handleSocialLogin('apple')}
-            sx={{
-              borderColor: '#000',
-              color: '#000',
-              textTransform: 'none',
-              fontWeight: 500,
-              py: 1.2,
-              '&:hover': { backgroundColor: '#f5f5f5', borderColor: '#000' },
-            }}
-          >
-            Apple {label}
-          </MuiButton>
-
-          <MuiButton
-            variant="outlined"
-            fullWidth
-            startIcon={FACEBOOK_SVG}
-            onClick={() => handleSocialLogin('facebook')}
-            sx={{
-              borderColor: '#1877F2',
-              color: '#1877F2',
-              textTransform: 'none',
-              fontWeight: 500,
-              py: 1.2,
-              '&:hover': { backgroundColor: '#f0f2f5', borderColor: '#1877F2' },
-            }}
-          >
-            Facebook {label}
-          </MuiButton>
-        </Box>
-      )}
+      {position === 'top' && buttons}
 
       <Divider sx={{ my: 2.5 }}>
         <Typography variant="body2" color="text.secondary">
@@ -127,60 +225,91 @@ export default function SocialLoginButtons({ mode, position = 'bottom' }: Social
         </Typography>
       </Divider>
 
-      {position === 'bottom' && (
-        <Box display="flex" flexDirection="column" gap={1.5}>
-          <MuiButton
-            variant="outlined"
-            fullWidth
-            startIcon={GOOGLE_SVG}
-            onClick={() => handleSocialLogin('google')}
-            sx={{
-              borderColor: '#dadce0',
-              color: '#3c4043',
-              textTransform: 'none',
-              fontWeight: 500,
-              py: 1.2,
-              '&:hover': { borderColor: '#d2e3fc', backgroundColor: '#f8f9fa' },
-            }}
-          >
-            Google {label}
-          </MuiButton>
+      {position === 'bottom' && buttons}
 
-          <MuiButton
-            variant="outlined"
+      {/* Social login dialog */}
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ pb: 1 }}>
+          {providerLabel} ile {mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" mb={2}>
+            {providerLabel} hesabınızla ilişkili e-posta adresinizi girin.
+          </Typography>
+          {mode === 'register' && (
+            <TextField
+              label="Ad Soyad"
+              fullWidth
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              sx={{ mb: 2 }}
+              size="small"
+              autoFocus
+              autoComplete="name"
+              inputProps={{ autoComplete: 'name' }}
+              InputProps={contactPickerSupported ? {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Tooltip title="Kişilerden seç">
+                      <IconButton size="small" onClick={pickFromContacts}>
+                        <ContactsIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                ),
+              } : undefined}
+            />
+          )}
+          <TextField
+            label="E-posta"
+            type="email"
             fullWidth
-            startIcon={APPLE_SVG}
-            onClick={() => handleSocialLogin('apple')}
-            sx={{
-              borderColor: '#000',
-              color: '#000',
-              textTransform: 'none',
-              fontWeight: 500,
-              py: 1.2,
-              '&:hover': { backgroundColor: '#f5f5f5', borderColor: '#000' },
-            }}
-          >
-            Apple {label}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            size="small"
+            autoFocus={mode === 'login'}
+            autoComplete="email"
+            inputProps={{ autoComplete: 'email' }}
+            onKeyDown={(e) => e.key === 'Enter' && handleSocialSubmit()}
+          />
+          {error && (
+            <Typography color="error" variant="body2" mt={1}>
+              {error}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <MuiButton onClick={() => setDialogOpen(false)} disabled={loading !== null}>
+            İptal
           </MuiButton>
+          <MuiButton
+            variant="contained"
+            onClick={handleSocialSubmit}
+            disabled={loading !== null}
+            startIcon={loading ? <CircularProgress size={16} /> : null}
+          >
+            {mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
+          </MuiButton>
+        </DialogActions>
+      </Dialog>
 
-          <MuiButton
-            variant="outlined"
-            fullWidth
-            startIcon={FACEBOOK_SVG}
-            onClick={() => handleSocialLogin('facebook')}
-            sx={{
-              borderColor: '#1877F2',
-              color: '#1877F2',
-              textTransform: 'none',
-              fontWeight: 500,
-              py: 1.2,
-              '&:hover': { backgroundColor: '#f0f2f5', borderColor: '#1877F2' },
-            }}
-          >
-            Facebook {label}
-          </MuiButton>
-        </Box>
-      )}
+      {/* Success notification */}
+      <Snackbar
+        open={successOpen}
+        autoHideDuration={3000}
+        onClose={() => setSuccessOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSuccessOpen(false)}
+          severity="success"
+          variant="filled"
+          icon={<CheckCircleIcon />}
+          sx={{ width: '100%' }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
