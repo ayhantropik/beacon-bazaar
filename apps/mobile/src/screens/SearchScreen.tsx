@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
 import { Text, Searchbar, Chip, ActivityIndicator } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AddToCartButton from '../components/AddToCartButton';
 import type { MainTabScreenProps } from '../navigation/types';
 import apiClient from '../services/api/client';
 
@@ -40,7 +42,7 @@ export default function SearchScreen({ navigation, route }: Props) {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       <Searchbar
         placeholder="Ürün ara..."
         value={query}
@@ -70,17 +72,20 @@ export default function SearchScreen({ navigation, route }: Props) {
                 style={styles.card}
                 onPress={() => navigation.navigate('ProductDetail', { productId: item.slug })}
               >
-                <Image source={{ uri: item.thumbnail || 'https://via.placeholder.com/150' }} style={styles.image} />
+                <Image source={{ uri: item.thumbnail || 'https://picsum.photos/150' }} style={styles.image} />
                 <Text variant="labelMedium" numberOfLines={1} style={styles.name}>{item.name}</Text>
-                <Text variant="labelLarge" style={styles.price}>
-                  {(hasDiscount ? item.salePrice : item.price)?.toLocaleString('tr-TR')} ₺
-                </Text>
+                <View style={styles.priceRow}>
+                  <Text variant="labelLarge" style={styles.price}>
+                    {Number(hasDiscount ? item.salePrice : item.price).toLocaleString('tr-TR')} ₺
+                  </Text>
+                  <AddToCartButton product={item} />
+                </View>
               </TouchableOpacity>
             );
           }}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -93,5 +98,6 @@ const styles = StyleSheet.create({
   card: { width: '48%', margin: '1%', backgroundColor: '#f9f9f9', borderRadius: 12, overflow: 'hidden', marginBottom: 8 },
   image: { width: '100%', height: 140 },
   name: { marginHorizontal: 8, marginTop: 8 },
-  price: { color: '#2563eb', fontWeight: '700', marginHorizontal: 8, marginBottom: 8, marginTop: 4 },
+  price: { color: '#2563eb', fontWeight: '700', flex: 1 },
+  priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingBottom: 8, marginTop: 4 },
 });

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, FlatList, Image } from 'react-native';
 import { Text, Button, IconButton } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { MainTabScreenProps } from '../navigation/types';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { removeItem, updateQuantity, clearCart } from '../store/slices/cartSlice';
@@ -14,18 +15,18 @@ export default function CartScreen({ navigation }: Props) {
 
   if (items.length === 0) {
     return (
-      <View style={styles.empty}>
+      <SafeAreaView edges={['top']} style={styles.empty}>
         <Text variant="headlineSmall" style={styles.emptyTitle}>Sepetiniz boş</Text>
         <Text variant="bodyMedium" style={styles.muted}>Ürünleri sepetinize ekleyin</Text>
         <Button mode="contained" onPress={() => navigation.navigate('Home')} style={styles.shopButton}>
           Alışverişe Başla
         </Button>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       <View style={styles.header}>
         <Text variant="titleLarge" style={styles.title}>Sepetim ({items.length})</Text>
         <Button mode="text" textColor="#e53935" onPress={() => dispatch(clearCart())}>Temizle</Button>
@@ -36,7 +37,7 @@ export default function CartScreen({ navigation }: Props) {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.item}>
-            <Image source={{ uri: item.thumbnail || 'https://via.placeholder.com/60' }} style={styles.itemImage} />
+            <Image source={{ uri: item.thumbnail || 'https://picsum.photos/60' }} style={styles.itemImage} />
             <View style={styles.itemInfo}>
               <Text variant="labelLarge" numberOfLines={1}>{item.name}</Text>
               <Text variant="labelMedium" style={styles.itemPrice}>{item.price.toLocaleString('tr-TR')} ₺</Text>
@@ -63,7 +64,7 @@ export default function CartScreen({ navigation }: Props) {
           Siparişi Tamamla
         </Button>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -6,7 +6,12 @@ import { env } from '../../config/env';
 const apiClient = axios.create({
   baseURL: env.apiBaseUrl,
   timeout: 15000,
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    // Tunnel browser-warning sayfasını atla
+    'bypass-tunnel-reminder': '1',
+    'User-Agent': 'venividicoop-mobile',
+  },
 });
 
 apiClient.interceptors.request.use(

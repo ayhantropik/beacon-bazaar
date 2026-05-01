@@ -6,6 +6,7 @@ import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { store, persistor } from './store';
 import RootNavigator from './navigation/RootNavigator';
+import OfflineBanner from './components/OfflineBanner';
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <PaperProvider>
             <NavigationContainer>
               <RootNavigator />
+              <OfflineBanner />
             </NavigationContainer>
           </PaperProvider>
         </SafeAreaProvider>

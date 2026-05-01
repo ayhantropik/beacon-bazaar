@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Avatar, List, Divider, Button } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -15,7 +16,8 @@ export default function ProfileScreen() {
   const user = useAppSelector((s) => s.auth.user);
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
+    <ScrollView>
       {/* Header */}
       <View style={styles.header}>
         <Avatar.Text
@@ -44,14 +46,52 @@ export default function ProfileScreen() {
           onPress={() => navigation.navigate('Favorites')}
         />
         <List.Item
+          title="Tekliflerim"
+          left={(props) => <List.Icon {...props} icon="gavel" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('MyBids')}
+        />
+        <List.Item
+          title="Mesajlarım"
+          left={(props) => <List.Icon {...props} icon="message-text" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('Conversations')}
+        />
+        <List.Item
+          title="Randevularım"
+          left={(props) => <List.Icon {...props} icon="calendar-clock" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('Appointments')}
+        />
+        <List.Item
+          title="Hediye Asistanı"
+          left={(props) => <List.Icon {...props} icon="gift" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('GiftPicker')}
+        />
+        <List.Item
           title="Adreslerim"
           left={(props) => <List.Icon {...props} icon="map-marker" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('Addresses')}
         />
         <List.Item
           title="Bildirimler"
           left={(props) => <List.Icon {...props} icon="bell" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('Notifications')}
+        />
+      </List.Section>
+
+      <Divider />
+
+      <List.Section>
+        <List.Item
+          title="Mağazam"
+          description="Satıcı paneli, ürün ve sipariş yönetimi"
+          left={(props) => <List.Icon {...props} icon="storefront" color="#1a6b52" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('SellerDashboard')}
         />
       </List.Section>
 
@@ -62,11 +102,13 @@ export default function ProfileScreen() {
           title="Ayarlar"
           left={(props) => <List.Icon {...props} icon="cog" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('Settings')}
         />
         <List.Item
           title="Yardım"
           left={(props) => <List.Icon {...props} icon="help-circle" />}
           right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => navigation.navigate('Settings')}
         />
       </List.Section>
 
@@ -78,6 +120,7 @@ export default function ProfileScreen() {
 
       <Text variant="bodySmall" style={styles.version}>VeniVidiCoop v1.0.0</Text>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 

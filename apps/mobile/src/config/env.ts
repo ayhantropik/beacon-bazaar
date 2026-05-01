@@ -1,6 +1,9 @@
 export const env = {
-  apiBaseUrl: __DEV__ ? 'http://192.168.1.93:4000/api/v1' : 'https://api.venividicoop.com/api/v1',
+  apiBaseUrl: __DEV__ ? 'https://pens-urban-guidance-cleveland.trycloudflare.com/api/v1' : 'https://api.venividicoop.com/api/v1',
+  azureMapsKey: '***REDACTED_AZURE_MAPS_KEY***',
   googleMapsApiKey: '',
+  googleAuthClientId: '', // Google Cloud Console > OAuth 2.0 Client ID (iOS)
+  facebookAppId: '',      // developers.facebook.com > Apps > App ID
   firebaseConfig: {
     apiKey: '',
     authDomain: '',

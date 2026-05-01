@@ -164,7 +164,7 @@ export default function OrderDetailScreen({ route, navigation }: Props) {
               {idx > 0 && <Divider style={styles.itemDivider} />}
               <View style={styles.itemRow}>
                 <Image
-                  source={{ uri: item.thumbnail || 'https://via.placeholder.com/48' }}
+                  source={{ uri: item.thumbnail || 'https://picsum.photos/48' }}
                   style={styles.thumbnail}
                 />
                 <View style={styles.itemInfo}>

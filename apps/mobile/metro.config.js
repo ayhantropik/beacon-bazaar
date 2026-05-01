@@ -6,7 +6,6 @@ const monorepoRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
 
-// Monorepo support
 config.watchFolders = [monorepoRoot];
 
 config.resolver.nodeModulesPaths = [
@@ -14,7 +13,11 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, 'node_modules'),
 ];
 
-// Force projectRoot so Metro resolves entry point correctly
-config.projectRoot = projectRoot;
+config.resolver.disableHierarchicalLookup = true;
+config.resolver.unstable_enableSymlinks = true;
+
+config.resolver.extraNodeModules = {
+  '@babel/runtime': path.resolve(monorepoRoot, 'node_modules/@babel/runtime'),
+};
 
 module.exports = config;

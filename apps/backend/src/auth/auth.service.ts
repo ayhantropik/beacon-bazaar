@@ -146,6 +146,52 @@ export class AuthService {
     return { success: true, data: { user: userWithoutPassword, tokens, provider } };
   }
 
+  async forgotPassword(email: string) {
+    if (!email) {
+      return { success: true, message: 'Şifre sıfırlama bağlantısı e-posta adresine gönderildi' };
+    }
+    const normalized = email.trim().toLowerCase();
+    const user = await this.userRepo.findOne({ where: { email: normalized } });
+    // Güvenlik: kullanıcı yoksa bile aynı yanıtı dön (enumeration önlemi)
+    if (user) {
+      const resetToken = this.jwtService.sign(
+        { sub: user.id, email: user.email, type: 'reset' },
+        { secret: this.configService.get('JWT_SECRET'), expiresIn: '1h' },
+      );
+      await this.emailService.sendPasswordResetEmail(
+        user.email,
+        user.name || '',
+        resetToken,
+      );
+    }
+    return { success: true, message: 'Şifre sıfırlama bağlantısı e-posta adresine gönderildi' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    if (!token || !newPassword) {
+      throw new UnauthorizedException('Token ve yeni şifre gerekli');
+    }
+    if (newPassword.length < 6) {
+      throw new UnauthorizedException('Şifre en az 6 karakter olmalı');
+    }
+    let payload: any;
+    try {
+      payload = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
+    } catch {
+      throw new UnauthorizedException('Bağlantı geçersiz veya süresi dolmuş');
+    }
+    if (payload.type !== 'reset') {
+      throw new UnauthorizedException('Geçersiz token');
+    }
+    const user = await this.userRepo.findOne({ where: { id: payload.sub } });
+    if (!user) throw new UnauthorizedException('Kullanıcı bulunamadı');
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await this.userRepo.update(user.id, { password: hashed });
+    return { success: true, message: 'Şifren güncellendi. Yeni şifrenle giriş yapabilirsin.' };
+  }
+
   // Eski endpoint uyumluluğu için
   async verifyStoreOwner(token: string) {
     return this.verifyEmail(token);

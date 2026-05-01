@@ -12,6 +12,24 @@ export type RootStackParamList = {
   Orders: undefined;
   Favorites: undefined;
   AppointmentBooking: { storeId: string };
+  Auctions: undefined;
+  AuctionDetail: { auctionId: string };
+  MyBids: undefined;
+  OtoListing: undefined;
+  EmlakListing: undefined;
+  YemekListing: undefined;
+  Addresses: undefined;
+  Conversations: undefined;
+  Chat: { conversationId: string; title?: string };
+  Appointments: undefined;
+  GiftPicker: undefined;
+  Notifications: undefined;
+  Settings: undefined;
+  SellerDashboard: undefined;
+  SellerProducts: undefined;
+  SellerOrders: undefined;
+  CreateStore: undefined;
+  CreateProduct: undefined;
 };
 
 export type AuthStackParamList = {

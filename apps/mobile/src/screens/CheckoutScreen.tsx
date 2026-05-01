@@ -19,7 +19,7 @@ import {
 } from 'react-native-paper';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import type { RootStackScreenProps } from '../navigation/types';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearCart } from '../store/slices/cartSlice';

@@ -77,6 +77,15 @@ export default function LoginScreen({ navigation }: Props) {
 
         <Button
           mode="text"
+          onPress={() => navigation.navigate('ForgotPassword')}
+          style={styles.linkButton}
+          compact
+        >
+          Şifremi Unuttum
+        </Button>
+
+        <Button
+          mode="text"
           onPress={() => navigation.navigate('Register')}
           style={styles.linkButton}
         >

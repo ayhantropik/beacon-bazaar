@@ -7,7 +7,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Card, Text, IconButton } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 
 interface ProductRating {
   average: number;

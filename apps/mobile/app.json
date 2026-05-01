@@ -5,7 +5,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.venividicoop.app",
@@ -19,8 +21,14 @@
         "backgroundColor": "#1a6b52"
       },
       "package": "com.venividicoop.app",
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
-    "scheme": "venividicoop"
+    "scheme": "venividicoop",
+    "plugins": [
+      "expo-web-browser"
+    ]
   }
 }

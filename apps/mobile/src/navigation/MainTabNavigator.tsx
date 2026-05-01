@@ -1,17 +1,32 @@
 import React from 'react';
+import { View, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { MainTabParamList } from './types';
 import HomeScreen from '../screens/HomeScreen';
 import SearchScreen from '../screens/SearchScreen';
 import CartScreen from '../screens/CartScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import MapScreen from '../screens/MapScreen';
+import FloatingCart from '../components/FloatingCart';
+import { useNavigationState } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
+function FloatingCartGate() {
+  const route = useNavigationState((s) => {
+    const main = s?.routes?.find((r) => r.name === 'Main') || s?.routes?.[s?.index || 0];
+    const tabState: any = main?.state;
+    if (!tabState) return 'Home';
+    return tabState.routes?.[tabState.index]?.name || 'Home';
+  });
+  if (route === 'Cart') return null;
+  return <FloatingCart />;
+}
+
 export default function MainTabNavigator() {
   return (
+    <View style={styles.flex}>
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
@@ -68,5 +83,11 @@ export default function MainTabNavigator() {
         }}
       />
     </Tab.Navigator>
+    <FloatingCartGate />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+});

@@ -9,6 +9,7 @@ import uiReducer from './slices/uiSlice';
 import storeReducer from './slices/storeSlice';
 import productReducer from './slices/productSlice';
 import favoriteReducer from './slices/favoriteSlice';
+import auctionReducer from './slices/auctionSlice';
 
 const persistConfig = {
   key: 'root',
@@ -25,6 +26,7 @@ const rootReducer = combineReducers({
   store: storeReducer,
   product: productReducer,
   favorites: favoriteReducer,
+  auction: auctionReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

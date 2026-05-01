@@ -79,6 +79,18 @@ export class AuthController {
     return this.authService.socialLogin(dto.provider, dto);
   }
 
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Şifre sıfırlama bağlantısı gönder' })
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Şifreyi sıfırla' })
+  async resetPassword(@Body() dto: { token: string; newPassword: string }) {
+    return this.authService.resetPassword(dto.token, dto.newPassword);
+  }
+
   @Put('change-password')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
