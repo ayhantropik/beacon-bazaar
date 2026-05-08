@@ -1,9 +1,24 @@
+import Constants from 'expo-constants';
+
+// Tüm secret/config değerleri app.config.js > extra'dan gelir.
+// .env'de iki URL tutulabilir:
+//   API_BASE_URL          — kalıcı production URL (Render vs.) - ana
+//   API_BASE_URL_LOCAL    — opsiyonel dev tunnel (Cloudflare quick tunnel)
+//   USE_LOCAL_TUNNEL=true ise dev URL'i kullan, aksi halde kalıcı URL
+const extra = (Constants.expoConfig?.extra ?? {}) as Record<string, string | undefined>;
+
+const PROD_FALLBACK = 'https://venividicoop-api.onrender.com/api/v1';
+
+const useLocal = (extra.useLocalTunnel || '').toString().toLowerCase() === 'true';
+const localUrl = extra.apiBaseUrlLocal || '';
+const prodUrl = extra.apiBaseUrl || PROD_FALLBACK;
+
 export const env = {
-  apiBaseUrl: __DEV__ ? 'https://pens-urban-guidance-cleveland.trycloudflare.com/api/v1' : 'https://api.venividicoop.com/api/v1',
-  azureMapsKey: '***REDACTED_AZURE_MAPS_KEY***',
+  apiBaseUrl: useLocal && localUrl ? localUrl : prodUrl,
+  azureMapsKey: extra.azureMapsKey || '',
   googleMapsApiKey: '',
-  googleAuthClientId: '', // Google Cloud Console > OAuth 2.0 Client ID (iOS)
-  facebookAppId: '',      // developers.facebook.com > Apps > App ID
+  googleAuthClientId: extra.googleAuthClientId || '',
+  facebookAppId: extra.facebookAppId || '',
   firebaseConfig: {
     apiKey: '',
     authDomain: '',

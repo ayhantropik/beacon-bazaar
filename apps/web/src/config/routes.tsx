@@ -11,6 +11,7 @@ const MapPage = lazy(() => import('@pages/MapPage'));
 const LoginPage = lazy(() => import('@pages/LoginPage'));
 const RegisterPage = lazy(() => import('@pages/RegisterPage'));
 const ResetPasswordPage = lazy(() => import('@pages/ResetPasswordPage'));
+const ForgotPasswordPage = lazy(() => import('@pages/ForgotPasswordPage'));
 const StoreDetailPage = lazy(() => import('@pages/StoreDetailPage'));
 const ProductDetailPage = lazy(() => import('@pages/ProductDetailPage'));
 const SearchResultsPage = lazy(() => import('@pages/SearchResultsPage'));
@@ -300,6 +301,14 @@ export const router = createBrowserRouter([
         element: (
           <LazyLoad>
             <ResetPasswordPage />
+          </LazyLoad>
+        ),
+      },
+      {
+        path: 'forgot-password',
+        element: (
+          <LazyLoad>
+            <ForgotPasswordPage />
           </LazyLoad>
         ),
       },

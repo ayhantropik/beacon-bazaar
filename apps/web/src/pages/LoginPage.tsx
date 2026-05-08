@@ -164,6 +164,12 @@ export default function LoginPage() {
       {!isStore && <SocialLoginButtons mode="login" />}
 
       <Typography textAlign="center" mt={2}>
+        <Link href="/forgot-password" underline="hover" sx={{ fontSize: 14, color: 'text.secondary' }}>
+          Şifremi unuttum
+        </Link>
+      </Typography>
+
+      <Typography textAlign="center" mt={1}>
         Hesabınız yok mu?{' '}
         <Link href={isStore ? '/register?type=store' : '/register'} underline="hover">
           {isStore ? 'Kurumsal Kayıt Ol' : 'Kayıt Ol'}

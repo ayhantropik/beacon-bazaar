@@ -1,0 +1,40 @@
+{
+  "cli": {
+    "version": ">= 5.9.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "API_BASE_URL": "https://venividicoop-api.onrender.com/api/v1",
+        "USE_LOCAL_TUNNEL": "false"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": { "simulator": false },
+      "channel": "preview",
+      "env": {
+        "API_BASE_URL": "https://venividicoop-api.onrender.com/api/v1",
+        "USE_LOCAL_TUNNEL": "false"
+      }
+    },
+    "production": {
+      "channel": "production",
+      "autoIncrement": true,
+      "env": {
+        "API_BASE_URL": "https://venividicoop-api.onrender.com/api/v1",
+        "USE_LOCAL_TUNNEL": "false"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  },
+  "update": {
+    "production": { "channel": "production" },
+    "preview": { "channel": "preview" }
+  }
+}

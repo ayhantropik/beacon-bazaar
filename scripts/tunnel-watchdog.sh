@@ -4,7 +4,8 @@
 # ve env.ts'yi yeni URL ile günceller.
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-ENV_FILE="$ROOT/apps/mobile/src/config/env.ts"
+ENV_TS_FILE="$ROOT/apps/mobile/src/config/env.ts"
+DOTENV_FILE="$ROOT/apps/mobile/.env"
 LOG_FILE="/tmp/cf-tunnel.log"
 
 GREEN='\033[0;32m'
@@ -26,13 +27,22 @@ start_tunnel() {
       code=$(curl -s -o /dev/null -w "%{http_code}" "$URL/api/v1/health" --max-time 8)
       if [ "$code" = "200" ]; then
         echo -e "${GREEN}[$(date +%H:%M:%S)] Tunnel UP: $URL${NC}"
-        # env.ts'yi güncelle
+        # env.ts'yi güncelle (legacy fallback için)
         python3 - <<PYEOF
-import re
-path = "$ENV_FILE"
-with open(path) as f: src = f.read()
-new = re.sub(r"apiBaseUrl: __DEV__ \? '[^']+' :", "apiBaseUrl: __DEV__ ? '$URL/api/v1' :", src)
-with open(path, 'w') as f: f.write(new)
+import re, os
+ts = "$ENV_TS_FILE"
+if os.path.exists(ts):
+    with open(ts) as f: src = f.read()
+    new = re.sub(r"apiBaseUrl: __DEV__ \? '[^']+' :", "apiBaseUrl: __DEV__ ? '$URL/api/v1' :", src)
+    if new != src:
+        with open(ts, 'w') as f: f.write(new)
+# .env dosyasını güncelle (Expo Constants.expoConfig.extra için)
+de = "$DOTENV_FILE"
+if os.path.exists(de):
+    with open(de) as f: src = f.read()
+    new = re.sub(r"^API_BASE_URL_LOCAL=.*$", "API_BASE_URL_LOCAL=$URL/api/v1", src, flags=re.MULTILINE)
+    if new != src:
+        with open(de, 'w') as f: f.write(new)
 PYEOF
         # Mevcut URL'i bir state dosyasına yaz
         echo "$URL" > /tmp/cf-tunnel-current-url
@@ -54,9 +64,24 @@ check_tunnel() {
   return 1
 }
 
-# İlk başlangıç
+# İlk başlangıç — eğer mevcut tunnel hâlâ canlıysa yeniden başlatma (URL koru)
 echo -e "${YELLOW}Cloudflare tunnel watchdog başlatılıyor...${NC}"
-start_tunnel || exit 1
+EXISTING=$(cat /tmp/cf-tunnel-current-url 2>/dev/null)
+if [ -n "$EXISTING" ] && check_tunnel "$EXISTING"; then
+  echo -e "${GREEN}[$(date +%H:%M:%S)] Mevcut tunnel canlı: $EXISTING (yeniden başlatılmıyor)${NC}"
+  # .env'i her ihtimale karşı sync et
+  python3 - <<PYEOF
+import re, os
+de = "$DOTENV_FILE"
+if os.path.exists(de):
+    with open(de) as f: src = f.read()
+    new = re.sub(r"^API_BASE_URL=.*$", "API_BASE_URL=$EXISTING/api/v1", src, flags=re.MULTILINE)
+    if new != src:
+        with open(de, 'w') as f: f.write(new)
+PYEOF
+else
+  start_tunnel || exit 1
+fi
 
 # Sürekli izle
 while true; do
