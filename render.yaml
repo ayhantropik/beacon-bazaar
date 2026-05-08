@@ -11,7 +11,7 @@ services:
     buildCommand: |
       yarn install --frozen-lockfile &&
       yarn workspace @beacon-bazaar/shared build &&
-      yarn workspace @beacon-bazaar/backend build
+      cd apps/backend && node ../../node_modules/@nestjs/cli/bin/nest.js build
     startCommand: cd apps/backend && node dist/main
     healthCheckPath: /api/v1/health
     envVars:
