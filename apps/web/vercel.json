@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "buildCommand": "cd ../.. && yarn install --frozen-lockfile --production=false && yarn workspace @beacon-bazaar/shared build && yarn workspace @beacon-bazaar/web build",
+  "buildCommand": "cd ../.. && yarn install --frozen-lockfile --production=false --ignore-engines && yarn workspace @beacon-bazaar/shared build && yarn workspace @beacon-bazaar/web build",
   "outputDirectory": "dist",
   "installCommand": "echo skip-install",
   "rewrites": [
