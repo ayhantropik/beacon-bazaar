@@ -34,6 +34,13 @@ services:
       - key: JWT_REFRESH_EXPIRES_IN
         value: 7d
 
+      # Resend HTTPS API (Render free outbound SMTP'yi engellediği için birincil sağlayıcı)
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        value: "VeniVidiCoop <onboarding@resend.dev>"
+
+      # SMTP fallback (Render dışı kullanım için, opsiyonel)
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT

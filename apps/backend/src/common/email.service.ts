@@ -4,10 +4,22 @@ import * as nodemailer from 'nodemailer';
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter | null = null;
+  private resendKey: string | null = null;
+  private fromAddress = '';
 
   constructor() {
-    // SMTP ayarları .env'den alınır, yoksa ethereal (test) kullanılır
+    // 1) Resend HTTPS API (öncelik) — port engellemesinden etkilenmez
+    this.resendKey = process.env.RESEND_API_KEY || null;
+    this.fromAddress =
+      process.env.MAIL_FROM ||
+      (this.resendKey ? 'VeniVidiCoop <onboarding@resend.dev>' : `VeniVidiCoop <${process.env.SMTP_USER || 'noreply@venividicoop.com'}>`);
+
+    if (this.resendKey) {
+      this.logger.log('Email provider: Resend (HTTPS API)');
+    }
+
+    // 2) Nodemailer SMTP fallback (local dev için)
     const host = process.env.SMTP_HOST;
     const port = Number(process.env.SMTP_PORT) || 587;
     const user = process.env.SMTP_USER;
@@ -15,26 +27,82 @@ export class EmailService {
 
     if (host && user && pass) {
       this.transporter = nodemailer.createTransport({
-        host, port, secure: port === 465,
+        host,
+        port,
+        secure: port === 465,
         auth: { user, pass },
-        // Render IPv6 routing yok; DNS lookup'ı IPv4'e zorla.
         family: 4,
       } as any);
-      this.logger.log(`Email SMTP configured: ${host}`);
-    } else {
-      this.transporter = null as any;
-      this.logger.warn('Email SMTP not configured — verification links will be logged to console');
+      if (!this.resendKey) {
+        this.logger.log(`Email SMTP configured: ${host}`);
+      }
+    } else if (!this.resendKey) {
+      this.logger.warn(
+        'Email not configured (no RESEND_API_KEY and no SMTP_*) — verification links will be logged to console',
+      );
     }
   }
 
-  async sendVerificationEmail(to: string, name: string, token: string, type: 'store' | 'user' = 'user'): Promise<boolean> {
+  private async sendViaResend(to: string, subject: string, html: string): Promise<boolean> {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ from: this.fromAddress, to, subject, html }),
+      });
+      const data: any = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        this.logger.warn(`Resend send failed to ${to}: ${res.status} ${JSON.stringify(data)}`);
+        return false;
+      }
+      this.logger.log(`Resend email sent to ${to} — id: ${data.id}`);
+      return true;
+    } catch (err: any) {
+      this.logger.warn(`Resend send error to ${to}: ${err.message}`);
+      return false;
+    }
+  }
+
+  private async sendViaSmtp(to: string, subject: string, html: string): Promise<boolean> {
+    if (!this.transporter) return false;
+    try {
+      const info = await this.transporter.sendMail({
+        from: this.fromAddress,
+        to,
+        subject,
+        html,
+      });
+      this.logger.log(`SMTP email sent to ${to} — messageId: ${info.messageId}`);
+      return true;
+    } catch (err: any) {
+      this.logger.warn(`SMTP send failed to ${to}: ${err.message}`);
+      return false;
+    }
+  }
+
+  private async deliver(to: string, subject: string, html: string): Promise<boolean> {
+    if (this.resendKey) return this.sendViaResend(to, subject, html);
+    return this.sendViaSmtp(to, subject, html);
+  }
+
+  async sendVerificationEmail(
+    to: string,
+    name: string,
+    token: string,
+    type: 'store' | 'user' = 'user',
+  ): Promise<boolean> {
     const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
 
     const subtitle = type === 'store' ? 'Mağaza Üyelik Onayı' : 'E-posta Onayı';
-    const bodyText = type === 'store'
-      ? `<strong>${name}</strong> mağazanız VeniVidiCoop platformunda oluşturuldu. Üyeliğinizi aktifleştirmek için aşağıdaki butona tıklayın:`
-      : `Merhaba <strong>${name}</strong>, VeniVidiCoop'a hoş geldiniz! Hesabınızı aktifleştirmek için aşağıdaki butona tıklayın:`;
-    const subject = type === 'store' ? `${name} — Mağaza Üyelik Onayı` : 'VeniVidiCoop — E-posta Onayı';
+    const bodyText =
+      type === 'store'
+        ? `<strong>${name}</strong> mağazanız VeniVidiCoop platformunda oluşturuldu. Üyeliğinizi aktifleştirmek için aşağıdaki butona tıklayın:`
+        : `Merhaba <strong>${name}</strong>, VeniVidiCoop'a hoş geldiniz! Hesabınızı aktifleştirmek için aşağıdaki butona tıklayın:`;
+    const subject =
+      type === 'store' ? `${name} — Mağaza Üyelik Onayı` : 'VeniVidiCoop — E-posta Onayı';
 
     const html = `
       <div style="font-family:'DM Sans',Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
@@ -63,29 +131,8 @@ export class EmailService {
       </div>
     `;
 
-    this.logger.log(`\n========================================`);
-    this.logger.log(`📧 E-POSTA ONAY LİNKİ`);
-    this.logger.log(`   İsim: ${name}`);
-    this.logger.log(`   E-posta: ${to}`);
-    this.logger.log(`   Tip: ${type}`);
-    this.logger.log(`   Onay URL: ${verifyUrl}`);
-    this.logger.log(`========================================\n`);
-
-    if (!this.transporter) return false;
-
-    try {
-      const info = await this.transporter.sendMail({
-        from: `"VeniVidiCoop" <${process.env.SMTP_USER || 'noreply@beaconbazaar.com'}>`,
-        to,
-        subject,
-        html,
-      });
-      this.logger.log(`Verification email sent to ${to} — messageId: ${info.messageId}`);
-      return true;
-    } catch (err) {
-      this.logger.warn(`Email send failed to ${to}: ${err}`);
-      return false;
-    }
+    this.logger.log(`📧 Verification: ${to} (${type})  ${verifyUrl}`);
+    return this.deliver(to, subject, html);
   }
 
   async sendPasswordResetEmail(to: string, name: string, token: string): Promise<boolean> {
@@ -117,34 +164,14 @@ export class EmailService {
           </p>
           <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
           <p style="color:#999;font-size:12px;text-align:center;">
-            Şifre sıfırlama talebinde bulunmadıysan bu e-postayı görmezden gelebilirsin — şifren değişmeyecek.<br>
+            Şifre sıfırlama talebinde bulunmadıysan bu e-postayı görmezden gelebilirsin.<br>
             &copy; 2026 VeniVidiCoop — Üreticiden tüketiciye
           </p>
         </div>
       </div>
     `;
 
-    this.logger.log(`\n========================================`);
-    this.logger.log(`🔐 ŞİFRE SIFIRLAMA LİNKİ`);
-    this.logger.log(`   İsim: ${name}`);
-    this.logger.log(`   E-posta: ${to}`);
-    this.logger.log(`   Reset URL: ${resetUrl}`);
-    this.logger.log(`========================================\n`);
-
-    if (!this.transporter) return false;
-
-    try {
-      const info = await this.transporter.sendMail({
-        from: `"VeniVidiCoop" <${process.env.SMTP_USER || 'noreply@beaconbazaar.com'}>`,
-        to,
-        subject,
-        html,
-      });
-      this.logger.log(`Reset email sent to ${to} — messageId: ${info.messageId}`);
-      return true;
-    } catch (err) {
-      this.logger.warn(`Reset email send failed to ${to}: ${err}`);
-      return false;
-    }
+    this.logger.log(`🔐 Password reset: ${to}  ${resetUrl}`);
+    return this.deliver(to, subject, html);
   }
 }
