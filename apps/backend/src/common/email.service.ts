@@ -17,7 +17,9 @@ export class EmailService {
       this.transporter = nodemailer.createTransport({
         host, port, secure: port === 465,
         auth: { user, pass },
-      });
+        // Render IPv6 routing yok; DNS lookup'ı IPv4'e zorla.
+        family: 4,
+      } as any);
       this.logger.log(`Email SMTP configured: ${host}`);
     } else {
       this.transporter = null as any;

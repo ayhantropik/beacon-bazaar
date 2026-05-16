@@ -42,7 +42,8 @@ export class HealthController {
         secure: port === 465,
         auth: { user, pass },
         connectionTimeout: 10000,
-      });
+        family: 4,
+      } as any);
       await t.verify();
       const info = await t.sendMail({
         from: `"VeniVidiCoop SMTP Test" <${user}>`,
