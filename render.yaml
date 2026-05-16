@@ -51,7 +51,7 @@ services:
         sync: false
 
       - key: CORS_ORIGINS
-        value: "*"
+        value: "https://venividicoop.vercel.app,http://localhost:3000,http://localhost:8081"
       - key: FRONTEND_URL
         sync: false
       - key: ANTHROPIC_API_KEY

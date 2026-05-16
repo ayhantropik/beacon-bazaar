@@ -9,8 +9,14 @@ async function bootstrap() {
 
   // Security
   app.use(helmet());
+  // CORS — "*" literal'ini wildcard yorumla; aksi halde virgülle ayrılmış liste
+  const corsEnv = process.env.CORS_ORIGINS?.trim();
+  const corsOrigin =
+    !corsEnv || corsEnv === '*'
+      ? true
+      : corsEnv.split(',').map((s) => s.trim()).filter(Boolean);
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+    origin: corsOrigin,
     credentials: true,
   });
 
