@@ -1,10 +1,15 @@
 import { Platform, Alert } from 'react-native';
+import Constants from 'expo-constants';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { env } from '../../config/env';
 
 WebBrowser.maybeCompleteAuthSession();
+
+// Expo Go (executionEnvironment === 'storeClient') ise Web Client + proxy.
+// Standalone EAS build'de iOS native scheme.
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
 export interface AutofillData {
   fullName?: string;
@@ -57,7 +62,7 @@ export async function autofillFromApple(): Promise<AutofillData | null> {
  * Production için Google Cloud Console'da OAuth Client ID gerekir.
  */
 export async function autofillFromGoogle(): Promise<AutofillData | null> {
-  const clientId = env.googleAuthClientId;
+  const clientId = isExpoGo ? env.googleAuthClientIdWeb : env.googleAuthClientIdIos;
   if (!clientId) {
     Alert.alert(
       'Google',
@@ -66,10 +71,9 @@ export async function autofillFromGoogle(): Promise<AutofillData | null> {
     return null;
   }
   try {
-    const redirectUri = AuthSession.makeRedirectUri({
-      scheme: 'venividicoop',
-      path: 'auth-callback',
-    });
+    const redirectUri = isExpoGo
+      ? AuthSession.makeRedirectUri({ useProxy: true } as any)
+      : AuthSession.makeRedirectUri({ scheme: 'venividicoop', path: 'auth-callback' });
     const discovery = await AuthSession.fetchDiscoveryAsync(
       'https://accounts.google.com',
     );
@@ -85,7 +89,7 @@ export async function autofillFromGoogle(): Promise<AutofillData | null> {
       redirectUri,
       responseType: AuthSession.ResponseType.Token,
     });
-    const result = await request.promptAsync(discovery);
+    const result = await request.promptAsync(discovery, isExpoGo ? { useProxy: true } as any : undefined);
     if (result.type !== 'success' || !result.authentication?.accessToken) {
       return null;
     }

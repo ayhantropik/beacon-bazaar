@@ -14,8 +14,13 @@
     },
     "preview": {
       "distribution": "internal",
-      "ios": { "simulator": false },
-      "channel": "preview",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
+      },
+      "channel": "production",
       "env": {
         "API_BASE_URL": "https://venividicoop-api.onrender.com/api/v1",
         "USE_LOCAL_TUNNEL": "false"
@@ -28,13 +33,20 @@
         "API_BASE_URL": "https://venividicoop-api.onrender.com/api/v1",
         "USE_LOCAL_TUNNEL": "false"
       }
+    },
+    "simulator": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      },
+      "channel": "production",
+      "env": {
+        "API_BASE_URL": "https://venividicoop-api.onrender.com/api/v1",
+        "USE_LOCAL_TUNNEL": "false"
+      }
     }
   },
   "submit": {
     "production": {}
-  },
-  "update": {
-    "production": { "channel": "production" },
-    "preview": { "channel": "preview" }
   }
 }

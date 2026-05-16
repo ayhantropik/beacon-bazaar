@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../navigation/types';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { login } from '../store/slices/authSlice';
+import { syncPushTokenWithBackend } from '../services/notifications/PushNotificationService';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -17,7 +18,11 @@ export default function LoginScreen({ navigation }: Props) {
 
   const handleLogin = async () => {
     if (!email || !password) return;
-    dispatch(login({ email, password }));
+    const result = await dispatch(login({ email, password }));
+    if (login.fulfilled.match(result)) {
+      // Login başarılı — push token'ı backend'e gönder (sessizce)
+      syncPushTokenWithBackend().catch(() => {});
+    }
   };
 
   return (

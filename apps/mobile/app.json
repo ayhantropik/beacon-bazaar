@@ -29,6 +29,11 @@
     "scheme": "venividicoop",
     "plugins": [
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "34ebb994-5324-4855-ad14-6e6988078b3d"
+      }
+    }
   }
 }

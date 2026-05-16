@@ -1,7 +1,24 @@
-import { Controller, Get, Put, Param, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Put,
+  Param,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { NotificationService } from './notification.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+interface RegisterDeviceDto {
+  token: string;
+  platform: 'ios' | 'android' | 'web';
+  device?: Record<string, string>;
+}
 
 @ApiTags('Notifications')
 @Controller('notifications')
@@ -9,6 +26,26 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @ApiBearerAuth()
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
+
+  @Post('register-device')
+  @ApiOperation({ summary: 'Push notification token kaydet' })
+  registerDevice(@Req() req: any, @Body() dto: RegisterDeviceDto) {
+    return this.notificationService.registerDevice(
+      req.user.id || req.user.sub,
+      dto.token,
+      dto.platform,
+      dto.device,
+    );
+  }
+
+  @Delete('register-device')
+  @ApiOperation({ summary: 'Push notification token kaldır' })
+  unregisterDevice(@Req() req: any, @Body() dto: { token: string }) {
+    return this.notificationService.unregisterDevice(
+      req.user.id || req.user.sub,
+      dto.token,
+    );
+  }
 
   @Get()
   @ApiOperation({ summary: 'Bildirimleri listele' })

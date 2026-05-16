@@ -3,12 +3,13 @@ import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { env } from '../../config/env';
 
+// Render free tier 15 dk inaktivite sonrası spin-down yapıyor — ilk istek 50-60 sn alabilir.
+// Sonraki istekler hızlı, ama 90 sn timeout cold-start ve genel ağ gecikmelerine kafi.
 const apiClient = axios.create({
   baseURL: env.apiBaseUrl,
-  timeout: 15000,
+  timeout: 90000,
   headers: {
     'Content-Type': 'application/json',
-    // Tunnel browser-warning sayfasını atla
     'bypass-tunnel-reminder': '1',
     'User-Agent': 'venividicoop-mobile',
   },

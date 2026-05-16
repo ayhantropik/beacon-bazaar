@@ -30,8 +30,9 @@ module.exports = ({ config }) => ({
   },
   scheme: 'venividicoop',
   plugins: ['expo-web-browser'],
+  owner: 'ayhantropik',
   updates: {
-    url: 'https://u.expo.dev/PROJECT_ID_PLACEHOLDER',
+    url: 'https://u.expo.dev/34ebb994-5324-4855-ad14-6e6988078b3d',
     fallbackToCacheTimeout: 0,
   },
   runtimeVersion: { policy: 'appVersion' },
@@ -40,7 +41,9 @@ module.exports = ({ config }) => ({
     apiBaseUrlLocal: process.env.API_BASE_URL_LOCAL,
     useLocalTunnel: process.env.USE_LOCAL_TUNNEL,
     azureMapsKey: process.env.AZURE_MAPS_KEY,
-    googleAuthClientId: process.env.GOOGLE_AUTH_CLIENT_ID,
+    googleAuthClientIdIos: process.env.GOOGLE_AUTH_CLIENT_ID_IOS,
+    googleAuthClientIdWeb: process.env.GOOGLE_AUTH_CLIENT_ID_WEB,
     facebookAppId: process.env.FACEBOOK_APP_ID,
+    eas: { projectId: '34ebb994-5324-4855-ad14-6e6988078b3d' },
   },
 });

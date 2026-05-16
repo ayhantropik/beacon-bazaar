@@ -17,7 +17,10 @@ export const env = {
   apiBaseUrl: useLocal && localUrl ? localUrl : prodUrl,
   azureMapsKey: extra.azureMapsKey || '',
   googleMapsApiKey: '',
-  googleAuthClientId: extra.googleAuthClientId || '',
+  // iOS native scheme için (standalone EAS Build)
+  googleAuthClientIdIos: extra.googleAuthClientIdIos || '',
+  // Expo Auth proxy için (Expo Go ve dev)
+  googleAuthClientIdWeb: extra.googleAuthClientIdWeb || '',
   facebookAppId: extra.facebookAppId || '',
   firebaseConfig: {
     apiKey: '',

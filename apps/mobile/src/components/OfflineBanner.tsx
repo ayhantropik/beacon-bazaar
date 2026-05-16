@@ -9,12 +9,45 @@ export default function OfflineBanner() {
   const translateY = useRef(new Animated.Value(-60)).current;
 
   useEffect(() => {
+    // iOS NetInfo zaman zaman yanlış offline raporluyor.
+    // Çift teyit: state false → 5sn bekle → tekrar fetch ile sınama, hâlâ
+    // başarısızsa banner göster. Pozitif state geldiğinde anında gizle.
+    let pendingTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const clearPending = () => {
+      if (pendingTimer) {
+        clearTimeout(pendingTimer);
+        pendingTimer = null;
+      }
+    };
+
     const unsub = NetInfo.addEventListener((state) => {
-      const isOffline =
-        state.isConnected === false || state.isInternetReachable === false;
-      setOffline(isOffline);
+      if (state.isConnected === false) {
+        clearPending();
+        pendingTimer = setTimeout(async () => {
+          try {
+            const res = await fetch('https://www.gstatic.com/generate_204', {
+              method: 'HEAD',
+            });
+            // 204 = network reachable, NetInfo yanlış raporladı
+            if (res.status === 204 || res.ok) {
+              setOffline(false);
+              return;
+            }
+            setOffline(true);
+          } catch {
+            setOffline(true);
+          }
+        }, 5000);
+      } else {
+        clearPending();
+        setOffline(false);
+      }
     });
-    return () => unsub();
+    return () => {
+      clearPending();
+      unsub();
+    };
   }, []);
 
   useEffect(() => {
