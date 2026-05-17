@@ -163,7 +163,8 @@ export default function OtoListingPage() {
 
   const allListings = useMemo(() => generateCarListings(), []);
 
-  const filteredListings = useMemo(() => {
+  // Tab dışındaki tüm filtreyi uygulanmış liste (tab counts için kullanılır)
+  const filteredExceptTab = useMemo(() => {
     let result = [...allListings];
     if (brand !== 'Tümü') result = result.filter(l => l.brand === brand);
     if (bodyType !== 'Tümü') result = result.filter(l => l.bodyType === bodyType);
@@ -175,9 +176,20 @@ export default function OtoListingPage() {
     if (minYear) result = result.filter(l => l.year >= Number(minYear));
     if (maxYear) result = result.filter(l => l.year <= Number(maxYear));
     if (maxKm) result = result.filter(l => l.km <= Number(maxKm));
+    if (query) result = result.filter(l => l.title.toLowerCase().includes(query.toLowerCase()));
+    return result;
+  }, [allListings, brand, bodyType, fuel, gear, city, minPrice, maxPrice, minYear, maxYear, maxKm, query]);
+
+  const tabCounts = useMemo(() => ({
+    all: filteredExceptTab.length,
+    new: filteredExceptTab.filter(l => l.km < 100).length,
+    used: filteredExceptTab.filter(l => l.km >= 100).length,
+  }), [filteredExceptTab]);
+
+  const filteredListings = useMemo(() => {
+    let result = [...filteredExceptTab];
     if (tab === 1) result = result.filter(l => l.km < 100);
     if (tab === 2) result = result.filter(l => l.km >= 100);
-    if (query) result = result.filter(l => l.title.toLowerCase().includes(query.toLowerCase()));
 
     // Sort
     if (sortBy === 'price_asc') result.sort((a, b) => a.price - b.price);
@@ -187,7 +199,7 @@ export default function OtoListingPage() {
     else result.sort((a, b) => b.date.localeCompare(a.date));
 
     return result;
-  }, [allListings, brand, bodyType, fuel, gear, city, minPrice, maxPrice, minYear, maxYear, maxKm, tab, query, sortBy]);
+  }, [filteredExceptTab, tab, sortBy]);
 
   const paginatedListings = filteredListings.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const totalPages = Math.ceil(filteredListings.length / ITEMS_PER_PAGE);
@@ -320,9 +332,9 @@ export default function OtoListingPage() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Tabs value={tab} onChange={(_, v) => { setTab(v); setPage(1); }} sx={{ minHeight: 36, '& .MuiTab-root': { minHeight: 36, py: 0.5, textTransform: 'none', fontWeight: 600 } }}>
-            <Tab label={`Tümü (${allListings.length})`} />
-            <Tab label="Sıfır" />
-            <Tab label="İkinci El" />
+            <Tab label={`Tümü (${tabCounts.all})`} />
+            <Tab label={`Sıfır (${tabCounts.new})`} />
+            <Tab label={`İkinci El (${tabCounts.used})`} />
           </Tabs>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
