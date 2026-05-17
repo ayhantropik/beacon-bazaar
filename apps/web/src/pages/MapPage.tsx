@@ -206,7 +206,7 @@ export default function MapPage() {
     <Box sx={{ position: 'relative', mx: { xs: -2, md: -3 }, mb: -3, overflow: 'visible' }}>
       <Box sx={{
         position: 'absolute',
-        top: 12,
+        top: 76,
         left: { xs: 10, md: 16 },
         zIndex: 1100,
         width: { xs: 'calc(100% - 20px)', sm: selectedStore ? 'calc(100% - 420px)' : 400 },
@@ -227,7 +227,7 @@ export default function MapPage() {
           onClick={() => navigate(-1)}
           sx={{
             position: 'absolute',
-            top: 12,
+            top: 76,
             right: { xs: 10, sm: selectedStore ? 396 : 16 },
             zIndex: 1100,
             bgcolor: '#fff',
