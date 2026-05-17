@@ -171,7 +171,7 @@ export default function EmlakListingPage() {
 
   const allListings = useMemo(() => generatePropertyListings(), []);
 
-  const filteredListings = useMemo(() => {
+  const filteredExceptTab = useMemo(() => {
     let result = [...allListings];
     if (propertyType !== 'Tümü') result = result.filter(l => l.type === propertyType);
     if (rooms !== 'Tümü') result = result.filter(l => l.rooms === rooms);
@@ -182,9 +182,20 @@ export default function EmlakListingPage() {
     if (maxPrice) result = result.filter(l => l.price <= Number(maxPrice));
     if (minM2) result = result.filter(l => l.netM2 >= Number(minM2));
     if (maxM2) result = result.filter(l => l.netM2 <= Number(maxM2));
+    if (query) result = result.filter(l => l.title.toLowerCase().includes(query.toLowerCase()) || l.neighborhood.toLowerCase().includes(query.toLowerCase()));
+    return result;
+  }, [allListings, propertyType, rooms, heating, city, district, minPrice, maxPrice, minM2, maxM2, query]);
+
+  const tabCounts = useMemo(() => ({
+    all: filteredExceptTab.length,
+    sale: filteredExceptTab.filter(l => l.listingType === 'sale').length,
+    rent: filteredExceptTab.filter(l => l.listingType === 'rent').length,
+  }), [filteredExceptTab]);
+
+  const filteredListings = useMemo(() => {
+    let result = [...filteredExceptTab];
     if (tab === 1) result = result.filter(l => l.listingType === 'sale');
     if (tab === 2) result = result.filter(l => l.listingType === 'rent');
-    if (query) result = result.filter(l => l.title.toLowerCase().includes(query.toLowerCase()) || l.neighborhood.toLowerCase().includes(query.toLowerCase()));
 
     if (sortBy === 'price_asc') result.sort((a, b) => a.price - b.price);
     else if (sortBy === 'price_desc') result.sort((a, b) => b.price - a.price);
@@ -193,7 +204,7 @@ export default function EmlakListingPage() {
     else result.sort((a, b) => b.date.localeCompare(a.date));
 
     return result;
-  }, [allListings, propertyType, rooms, heating, city, district, minPrice, maxPrice, minM2, maxM2, tab, query, sortBy]);
+  }, [filteredExceptTab, tab, sortBy]);
 
   const paginatedListings = filteredListings.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const totalPages = Math.ceil(filteredListings.length / ITEMS_PER_PAGE);
@@ -323,9 +334,9 @@ export default function EmlakListingPage() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Tabs value={tab} onChange={(_, v) => { setTab(v); setPage(1); }} sx={{ minHeight: 36, '& .MuiTab-root': { minHeight: 36, py: 0.5, textTransform: 'none', fontWeight: 600 } }}>
-            <Tab label={`Tümü (${allListings.length})`} />
-            <Tab label="Satılık" />
-            <Tab label="Kiralık" />
+            <Tab label={`Tümü (${tabCounts.all})`} />
+            <Tab label={`Satılık (${tabCounts.sale})`} />
+            <Tab label={`Kiralık (${tabCounts.rent})`} />
           </Tabs>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

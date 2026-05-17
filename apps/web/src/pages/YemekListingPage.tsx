@@ -187,7 +187,7 @@ export default function YemekListingPage() {
 
   const allListings = useMemo(() => generateRestaurantListings(), []);
 
-  const filteredListings = useMemo(() => {
+  const filteredExceptTab = useMemo(() => {
     let result = [...allListings];
     if (city !== 'Tüm Türkiye') result = result.filter(l => l.city === city);
     if (cuisineType !== 'Tümü') result = result.filter(l => l.cuisineType === cuisineType);
@@ -199,18 +199,29 @@ export default function YemekListingPage() {
     if (maxPriceRange < 4) result = result.filter(l => l.priceRange <= maxPriceRange);
     if (deliveryOnly) result = result.filter(l => l.hasDelivery);
     if (takeawayOnly) result = result.filter(l => l.hasTakeaway);
+    return result;
+  }, [allListings, cuisineType, city, minRating, maxPriceRange, deliveryOnly, takeawayOnly, query]);
+
+  const tabCounts = useMemo(() => ({
+    all: filteredExceptTab.length,
+    restoran: filteredExceptTab.filter(l => l.seller.type === 'restoran').length,
+    kafe: filteredExceptTab.filter(l => l.seller.type === 'kafe').length,
+    evYemek: filteredExceptTab.filter(l => l.cuisineType === 'Ev Yemekleri').length,
+  }), [filteredExceptTab]);
+
+  const filteredListings = useMemo(() => {
+    let result = [...filteredExceptTab];
     if (tab === 1) result = result.filter(l => l.seller.type === 'restoran');
     if (tab === 2) result = result.filter(l => l.seller.type === 'kafe');
     if (tab === 3) result = result.filter(l => l.cuisineType === 'Ev Yemekleri');
 
-    // Sort
     if (sortBy === 'rating') result.sort((a, b) => b.rating - a.rating);
     else if (sortBy === 'delivery_time') result.sort((a, b) => a.deliveryTime - b.deliveryTime);
     else if (sortBy === 'price_asc') result.sort((a, b) => a.priceRange - b.priceRange);
     else if (sortBy === 'price_desc') result.sort((a, b) => b.priceRange - a.priceRange);
 
     return result;
-  }, [allListings, cuisineType, city, minRating, maxPriceRange, deliveryOnly, takeawayOnly, tab, query, sortBy]);
+  }, [filteredExceptTab, tab, sortBy]);
 
   const paginatedListings = filteredListings.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const totalPages = Math.ceil(filteredListings.length / ITEMS_PER_PAGE);
@@ -338,10 +349,10 @@ export default function YemekListingPage() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Tabs value={tab} onChange={(_, v) => { setTab(v); setPage(1); }} sx={{ minHeight: 36, '& .MuiTab-root': { minHeight: 36, py: 0.5, textTransform: 'none', fontWeight: 600 } }}>
-            <Tab label={`Tümü (${allListings.length})`} />
-            <Tab label="Restoran" />
-            <Tab label="Kafe" />
-            <Tab label="Ev Yemekleri" />
+            <Tab label={`Tümü (${tabCounts.all})`} />
+            <Tab label={`Restoran (${tabCounts.restoran})`} />
+            <Tab label={`Kafe (${tabCounts.kafe})`} />
+            <Tab label={`Ev Yemekleri (${tabCounts.evYemek})`} />
           </Tabs>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
