@@ -125,10 +125,12 @@ export default function StoreProductsPanel({ store, highlightProductId, onClose 
       elevation={6}
       sx={{
         position: 'absolute',
-        top: 0,
+        // Search bar bar yüksekliği (~64) + üst nav (sticky 64) toplam ofset için
+        // panel'in search bar'ı kapatmaması için top:64 başlat ve height calc et
+        top: 64,
         right: 0,
         width: { xs: '100%', sm: 380 },
-        height: '100%',
+        height: 'calc(100% - 64px)',
         zIndex: 1001,
         display: 'flex',
         flexDirection: 'column',

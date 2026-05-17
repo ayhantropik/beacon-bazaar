@@ -188,7 +188,17 @@ export default function MapProductSearch({ onLocationSelect, onProductSelect, on
 
   return (
     <Box ref={containerRef} sx={{ position: 'relative', width: '100%', maxWidth: 400 }}>
-      <Paper sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', borderRadius: 2, boxShadow: 3 }}>
+      <Paper
+        sx={{
+          p: '4px 8px',
+          display: 'flex',
+          alignItems: 'center',
+          borderRadius: 2,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
+          border: '1px solid rgba(0,0,0,0.12)',
+          bgcolor: '#fff',
+        }}
+      >
         <IconButton size="small" sx={{ p: '8px' }}>
           <SearchIcon />
         </IconButton>
@@ -216,7 +226,7 @@ export default function MapProductSearch({ onLocationSelect, onProductSelect, on
             left: 0,
             right: 0,
             mt: 0.5,
-            zIndex: 1000,
+            zIndex: 1200,
             boxShadow: 4,
             borderRadius: 2,
             overflow: 'hidden',
@@ -274,8 +284,9 @@ export default function MapProductSearch({ onLocationSelect, onProductSelect, on
             mt: 0.5,
             maxHeight: 400,
             overflow: 'hidden',
-            zIndex: 1000,
-            boxShadow: 4,
+            zIndex: 1200,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+            border: '1px solid rgba(0,0,0,0.08)',
             display: 'flex',
             flexDirection: 'column',
           }}
