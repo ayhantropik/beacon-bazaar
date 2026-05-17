@@ -204,52 +204,56 @@ export default function MapPage() {
 
   return (
     <Box sx={{ position: 'relative', mx: { xs: -2, md: -3 }, mb: -3, overflow: 'visible' }}>
-      <Box sx={{
-        position: 'absolute',
-        top: 76,
-        left: { xs: 10, md: 16 },
-        zIndex: 1100,
-        width: { xs: 'calc(100% - 20px)', sm: selectedStore ? 'calc(100% - 420px)' : 400 },
-        maxWidth: { sm: 400 },
-        transition: 'width 0.3s',
-      }}>
-        <MapProductSearch
-          onLocationSelect={handleLocationSelect}
-          onProductSelect={handleProductSelect}
-          onSearchStoreIds={setSearchStoreIds}
-        />
+      {/* Search bar + opsiyonel "Hediye Listesine Dön" — normal flow, üst nav ile çakışmaz */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          px: { xs: 1.5, md: 2 },
+          py: 1.5,
+          bgcolor: '#fff',
+          borderBottom: '1px solid rgba(0,0,0,0.06)',
+          position: 'sticky',
+          top: 64,
+          zIndex: 1099,
+        }}
+      >
+        <Box sx={{ flex: 1, maxWidth: 600 }}>
+          <MapProductSearch
+            onLocationSelect={handleLocationSelect}
+            onProductSelect={handleProductSelect}
+            onSearchStoreIds={setSearchStoreIds}
+          />
+        </Box>
+        {searchParams.get('from') === 'gift' && (
+          <Button
+            variant="contained"
+            startIcon={<ArrowBackIcon />}
+            endIcon={<CardGiftcardIcon />}
+            onClick={() => navigate(-1)}
+            sx={{
+              bgcolor: '#fff',
+              color: 'primary.main',
+              fontWeight: 700,
+              borderRadius: 3,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              textTransform: 'none',
+              whiteSpace: 'nowrap',
+              '&:hover': { bgcolor: '#f5f5f5' },
+            }}
+          >
+            Hediye Listesine Dön
+          </Button>
+        )}
       </Box>
-      {searchParams.get('from') === 'gift' && (
-        <Button
-          variant="contained"
-          startIcon={<ArrowBackIcon />}
-          endIcon={<CardGiftcardIcon />}
-          onClick={() => navigate(-1)}
-          sx={{
-            position: 'absolute',
-            top: 76,
-            right: { xs: 10, sm: selectedStore ? 396 : 16 },
-            zIndex: 1100,
-            bgcolor: '#fff',
-            color: 'primary.main',
-            fontWeight: 700,
-            borderRadius: 3,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            textTransform: 'none',
-            transition: 'right 0.3s',
-            '&:hover': { bgcolor: '#f5f5f5' },
-          }}
-        >
-          Hediye Listesine Dön
-        </Button>
-      )}
       <MapContainer
         ref={mapRef}
         stores={stores as any}
         onStoreClick={handleStoreClick as any}
         highlightedStoreIds={searchStoreIds}
         searchMarker={searchMarker}
-        height="calc(100vh - 64px)"
+        height="calc(100vh - 64px - 64px)"
         onBoundsChange={handleBoundsChange}
       />
       <IndoorMapFull externalOpen={indoorOpen} onExternalClose={() => setIndoorOpen(false)} />
