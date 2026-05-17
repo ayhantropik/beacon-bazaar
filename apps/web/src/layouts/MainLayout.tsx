@@ -37,7 +37,12 @@ export default function MainLayout() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="sticky" color="default" elevation={1}>
+      <AppBar
+        position="sticky"
+        color="default"
+        elevation={1}
+        sx={{ bgcolor: '#fff' }}
+      >
         <Toolbar sx={{ gap: 1 }}>
           <IconButton
             edge="start"
